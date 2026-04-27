@@ -1,61 +1,63 @@
 
-import importlib
-from pathlib import Path
+from typing import Self, Sequence
 
 import numpy as np
-import xarray as xr
+import pandas as pd
 from loguru import logger
 
-from .merra2_lta import var_attrs, MERRA2LTAAtmosphere
+from .merra2_lta import MERRA2LTAAtmosphere, get_database_path as lta_database_path
 
 logger.disable(__name__)
 
 
-class __BaseCDAAtmosphere(
-    MERRA2LTAAtmosphere,
-    database_path=Path(importlib.resources.files('pysparta.atmoslib')) / 'merra2_lta_data'
-):
-    pass
+def get_database_path():
+    return lta_database_path()
 
 
 class MERRA2CDAAtmosphere(
-    __BaseCDAAtmosphere,
-    database_path=Path(importlib.resources.files('pysparta.atmoslib')) / 'merra2_lta_data'
-):
+    MERRA2LTAAtmosphere,
+    database_path=get_database_path()):
 
-    def get_variable(self, variable, times, sites=None, regular_grid=None,
-                     space_interp='bilinear', time_interp='quadratic'):
+    @classmethod
+    def at_sites(
+        cls,
+        times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex,
+        latitude: Sequence[float],
+        longitude: Sequence[float],
+        site_names: Sequence[str] | None = None,
+    ) -> Self:
 
-        if variable in ('beta', 'pwater'):
+        dataset = super().sites(
+            times=times,
+            latitude=latitude,
+            longitude=longitude,
+            site_names=site_names)
 
-            # output grid...
-            grid_holder = sites or regular_grid
-            lat_out = np.array(grid_holder['latitude'], ndmin=1)
-            lon_out = np.array(grid_holder['longitude'], ndmin=1)
-            time_out = np.array(times, dtype='datetime64[ns]')
+        if "pwater" in dataset:
+            dataset["pwater"] = 0.1
 
-            dims = (['time', 'latitude', 'longitude']
-                    if sites is None else
-                    ['time', 'location'])
+        if "beta" in dataset:
+            dataset["beta"] = 0.01
 
-            coords = ({'time': time_out, 'latitude': lat_out, 'longitude': lon_out}
-                      if sites is None else
-                      {'time': time_out,
-                       'location': np.arange(len(lat_out)),
-                       'latitude': ('location', lat_out),
-                       'longitude': ('location', lon_out)})
+        return dataset
 
-            return xr.DataArray(
-                data=0.01 if variable == 'beta' else 0.1,
-                dims=dims, coords=coords, attrs=var_attrs.get(variable))
+    @classmethod
+    def on_regular_grid(
+        cls,
+        times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex,
+        latitude: Sequence[float],
+        longitude: Sequence[float],
+    ) -> Self:
 
-        return super().get_variable(variable, times, sites, regular_grid,
-                                    space_interp, time_interp)
+        dataset = super().on_regular_grid(
+            times=times,
+            latitude=latitude,
+            longitude=longitude)
 
-    def get_atmosphere(self, times, sites=None, regular_grid=None, variables=None,
-                       space_interp='bilinear', time_interp='quadratic'):
-        return super(MERRA2CDAAtmosphere, self).get_atmosphere(
-            times, sites, regular_grid, variables, space_interp, time_interp)
+        if "pwater" in dataset:
+            dataset["pwater"] = 0.1
 
-    def _load_array(self, variable):
-        return super()._load_array(variable)
+        if "beta" in dataset:
+            dataset["beta"] = 0.01
+
+        return dataset

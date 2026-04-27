@@ -1,220 +1,119 @@
 
-import inspect
 import importlib
-import warnings
 from pathlib import Path
-import concurrent.futures as cf
+from typing import Self, Sequence
 
-import blosc2
 import numpy as np
+import numpy.typing as npt
+import pandas as pd
 import xarray as xr
 from loguru import logger
-from scipy.interpolate import interp1d
 
-from . import filters
-from ._base import BaseAtmosphere
-from .interpolate import regrid
-from .sandbox import assert_that
-from .dataio import (
-    read_netcdf,
-    save_array,
-    update_metadata
-)
+from ..validation import Latitude, Longitude, validate_type
+from ._base import BaseAtmosphere, make_cf_compliant
 
-try:
-    xesmf = importlib.import_module('xesmf')
-except (ImportError, ModuleNotFoundError):
-    xesmf = None
 
 logger.disable(__name__)
+logger = logger.opt(colors=True)
 
-var_attrs = {
-    'albedo': {
-        'standard_name': 'surface albedo',
-        'units': '1'},
-    'pressure': {
-        'standard_name': 'atmospheric pressure at ground level',
-        'units': 'hPa'},
-    'ozone': {
-        'standard_name': 'total-column ozone content',
-        'units': 'atm-cm'},
-    'pwater': {
-        'standard_name': 'precipitable water',
-        'units': 'atm-cm'},
-    'beta': {
-        'standard_name': 'aerosol angstrom turbidity',
-        'units': '1'},
-    'alpha': {
-        'standard_name': 'aerosol angstrom exponent',
-        'units': 1},
-    'ssa': {
-        'standard_name': 'aerosol single scattering albedo',
-        'units': '1'},
-    'elevation': {
-        'standard_name': 'surface elevation',
-        'units': 'm'}
-}
+
+def get_database_path():
+    return Path(importlib.resources.files("pysparta.atmoslib")) / "merra2_lta_data"
 
 
 class MERRA2LTAAtmosphere(
     BaseAtmosphere,
-    database_path=Path(importlib.resources.files('pysparta.atmoslib')) / 'merra2_lta_data'
+    database_path=get_database_path()
 ):
 
-    def get_variable(self, variable, times, sites=None, regular_grid=None,
-                     space_interp='bilinear', time_interp='quadratic'):
+    @classmethod
+    def at_sites(
+        cls,
+        times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex,
+        latitude: Sequence[float],
+        longitude: Sequence[float],
+        site_names: Sequence[str] | None = None,
+    ) -> Self:
 
-        assert_that(
-            self.has_variable(variable),
-            f'missing variable `{variable}`')
+        latitude = np.asarray([validate_type(lat, Latitude) for lat in latitude], dtype=float).reshape(-1)
+        longitude = np.asarray([validate_type(lon, Longitude) for lon in longitude], dtype=float).reshape(-1)
 
-        assert_that(
-            sites is not None or regular_grid is not None,
-            'sites or regular_grid must be provided')
+        if len(latitude) != len(longitude):
+            raise ValueError('latitude and longitude must have the same length')
 
-        assert_that(
-            sites is None or regular_grid is None,
-            'sites or regular_grid must be provided, but not the two of them')
+        # load the dataset. Check for local availability. If not available, download.
+        dataset = cls._load_dataset(times)
 
-        assert_that(
-            space_interp in ('nearest', 'bilinear', 'conservative'),
-            f'unknown spatial interpolation method `{space_interp}`')
+        # lat-lon interpolation
+        output_lat = xr.DataArray(latitude, dims="site", name="lat")
+        output_lon = xr.DataArray(longitude, dims="site", name="lon")
+        output_dataset = dataset.interp(lat=output_lat, lon=output_lon, method='linear')
 
-        if space_interp == 'conservative' and xesmf is None:
-            msg = ('conservative interpolation requires xESMF, which '
-                   'is not available. Using bilinear instead')
-            warnings.warn(msg, RuntimeWarning)
-            space_interp = 'bilinear'
+        # time interpolation
+        if "time" in output_dataset.coords:
+            output_dataset = output_dataset.interp(time=times, method='quadratic')
 
-        if space_interp == 'conservative' and sites is not None:
-            msg = ('conservative interpolation cannot be used with sites. '
-                   'Using bilinear instead')
-            warnings.warn(msg, RuntimeWarning)
-            space_interp = 'bilinear'
+        if site_names is not None:
+            output_dataset = output_dataset.assign_coords(
+                site_name=("site", [site_names] if isinstance(site_names, str) else site_names))
 
-        # output grid...
-        grid_holder = sites or regular_grid
-        lat_out = np.array(grid_holder['latitude'], ndmin=1)
-        lon_out = np.array(grid_holder['longitude'], ndmin=1)
-        time_out = np.array(times, dtype='datetime64[ns]')
+        output_dataset = output_dataset.compute()
 
-        # input grid...
-        lat_in = self.get_latitudes(variable)
-        lon_in = self.get_longitudes(variable)
-        years = 1970 + np.unique(time_out.astype('datetime64[Y]')).astype(int)
-        time_in = np.array(
-            [f'{yr}-{mo:02d}-15' for yr in years for mo in range(1, 13)],
-            dtype='datetime64[ns]')
+        obj = cls()
+        obj._atmosphere = make_cf_compliant(output_dataset, overwrite=True)
+        return obj
 
-        data_in = np.vstack([self._load_array(variable) for _ in range(len(years))])
+    @classmethod
+    def on_regular_grid(
+        cls,
+        times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex,
+        latitude: Sequence[float],
+        longitude: Sequence[float],
+    ) -> Self:
 
-        if sites is not None:
-            if lat_out.shape != lon_out.shape:
-                raise AttributeError('shape mismatch in output latitude and longitude')
+        latitude = np.asarray([validate_type(lat, Latitude) for lat in latitude], dtype=float).reshape(-1)
+        longitude = np.asarray([validate_type(lon, Longitude) for lon in longitude], dtype=float).reshape(-1)
 
-            data_out = regrid(lon_in, lat_in, data_in, lon_out, lat_out,
-                              method=space_interp)
+        # load the dataset. Check for local availability. If not available, download.
+        dataset = cls._load_dataset(times)
 
-            # perform the temporal interpolation to the target times...
-            kwargs = dict(kind=time_interp, fill_value='extrapolate')
-            xi = self._get_fractional_year(time_in)
-            x = self._get_fractional_year(time_out)
-            data_out = interp1d(xi, data_out, axis=0, **kwargs)(x)
+        # lat-lon interpolation
+        output_dataset = dataset.interp(lat=latitude, lon=longitude, method='linear')
 
-            return xr.DataArray(
-                data=data_out, dims=['time', 'location'],
-                coords={'time': time_out,
-                        'location': np.arange(len(lat_out)),
-                        'latitude': ('location', lat_out),
-                        'longitude': ('location', lon_out)})
+        # time interpolation
+        if "time" in output_dataset.coords:
+            output_dataset = output_dataset.interp(time=times, method='quadratic')
 
-        if regular_grid is not None:
+        output_dataset = output_dataset.compute()
 
-            data_out = np.full((12*len(years), len(lat_out), len(lon_out)), np.nan)
- 
-            if space_interp == 'conservative':
-
-                def center_to_bounds(a):
-                    return np.linspace(a[0], a[-1], len(a)+1) - (a[1] - a[0])/2
-
-                grid_in = {
-                    'lat': lat_in, 'lon': lon_in,
-                    'lat_b': center_to_bounds(lat_in),
-                    'lon_b': center_to_bounds(lon_in)}
-                grid_out = {
-                    'lat': lat_out, 'lon': lon_out,
-                    'lat_b': center_to_bounds(lat_out),
-                    'lon_b': center_to_bounds(lon_out)}
-                regridder = xesmf.Regridder(grid_in, grid_out, space_interp)
-                data_out[:] = regridder(data_in)
-
-            else:
-                xlon, xlat = np.meshgrid(lon_out, lat_out)
-                data_out[:] = regrid(lon_in, lat_in, data_in, xlon, xlat,
-                                     method=space_interp)
-
-            # perform the temporal interpolation to the target times...
-            kwargs = dict(kind=time_interp, fill_value='extrapolate')
-            xi = self._get_fractional_year(time_in)
-            x = self._get_fractional_year(time_out)
-            data_out = interp1d(xi, data_out, axis=0, **kwargs)(x)
-
-            return xr.DataArray(
-                data=data_out,
-                dims=['time', 'latitude', 'longitude'],
-                coords={'time': time_out, 'latitude': lat_out, 'longitude': lon_out},
-                attrs=var_attrs.get(variable))
-
-        return xr.DataArray(
-            data=data_out,
-            dims=['time', 'latitude', 'longitude'],
-            coords={'time': time_out, 'latitude': lat_out, 'longitude': lon_out},
-            attrs=var_attrs.get(variable))
-
-    def get_atmosphere(self, times, sites=None, regular_grid=None, variables=None,
-                       space_interp='bilinear', time_interp='quadratic'):
-
-        req_variables = self.variables if variables is None else variables
-        with cf.ThreadPoolExecutor(max_workers=len(req_variables)) as executor:
-
-            args = (times, sites, regular_grid, space_interp, time_interp)
-            futures = {executor.submit(self.get_variable, variable, *args): variable
-                       for variable in req_variables}
-            logger.debug('futures submitted!!')
-
-            data = {}
-            for future in cf.as_completed(futures):
-                variable = futures[future]
-                logger.debug(f'variable `{variable}` completed')
-                data[variable] = future.result()
-
-        return xr.Dataset(data)
+        obj = cls()
+        obj._atmosphere = make_cf_compliant(output_dataset, overwrite=True)
+        return obj
 
     @staticmethod
-    def _get_fractional_year(times):
-        one_day = np.timedelta64(1, 'D')
-        one_year = np.timedelta64(1, 'Y')
-        jan_1st = times.astype('datetime64[Y]').astype('datetime64[D]')
-        dec_31st = jan_1st.astype('datetime64[Y]') + one_year - one_day
-        year_length = dec_31st - jan_1st + one_day
-        year_fraction = (times - jan_1st) / year_length
-        return times.astype('datetime64[Y]').astype('f4') + 1970 + year_fraction
+    def _infer_years_from_times(times: npt.NDArray[np.datetime64] | pd.DatetimeIndex) -> list[int]:
+        the_times = times if isinstance(times, pd.DatetimeIndex) else pd.to_datetime(times)
+        years = set(the_times.year)
+        if (the_times[0] - pd.to_datetime(f"{min(years)}-01-15 12")) < pd.Timedelta(3, "D"):
+            years.add(min(years)-1)
+        if (pd.to_datetime(f"{max(years)}-12-15 12") - the_times[-1]) < pd.Timedelta(3, "D"):
+            years.add(max(years)+1)
+        return sorted(years)
 
-    def _load_array(self, variable):
-        assert_that(
-            variable in self._metadata,
-            f'missing variable `{variable}`')
+    @classmethod
+    def _load_dataset(
+        cls,
+        times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex,
+    ) -> xr.Dataset:
 
-        file_name = self.database_path / f'{variable}.bl2'
-        data = blosc2.load_array(file_name.as_posix())
+        def assign_year(ds, year):
+            times_month_start = pd.date_range(f"{year}-01-01", periods=12, freq="MS")
+            return ds.assign_coords(month=times_month_start + pd.Timedelta(14.5, "d")).rename({"month": "time"})
 
-        known_filters = dict(inspect.getmembers(filters, inspect.isclass))
-        for filter_descr in self._metadata[variable]['filters']:
-            filter_cls_name = filter_descr['class']
-            if filter_cls_name not in known_filters:
-                raise ValueError(f'unknown filter `{filter_cls_name}`')
-            filter_cls = known_filters[filter_cls_name]
-            filter_cls_kwargs = filter_descr['kwargs']
-            data = filter_cls(**filter_cls_kwargs).decode(data)
+        years = cls._infer_years_from_times(times)
+        dataset_lta = xr.open_dataset(cls.database_path / "merra2_lta_data_1999-2018.nc", chunks={})
+        dataset = xr.concat([assign_year(dataset_lta, year) for year in years], dim="time", data_vars="minimal")
 
-        return data
+        if "time" in dataset.coords:
+            return dataset.chunk(time=12)  # monthly chunks
+        return dataset

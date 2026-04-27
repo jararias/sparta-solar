@@ -16,3 +16,7 @@ clean:
 	@rm -rf .pytest_cache
 	@rm -f MANIFEST
 	@find . -name "__pycache__" -print0 | xargs -0 -I {} /bin/rm -rf "{}"
+
+.PHONY: mkdocs
+mkdocs:
+	@uv run mkdocs serve --open

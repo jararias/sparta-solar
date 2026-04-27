@@ -1,27 +1,19 @@
 
-import sys
-import importlib
+import dataclasses
 
-from ._base import BaseAtmosphere
+from .crs_sodaapi import CRSSODAAtmosphere
+from .custom import CustomAtmosphere
+from .merra2_geeapi import MERRA2GEEAtmosphere
 from .merra2_cda import MERRA2CDAAtmosphere
 from .merra2_lta import MERRA2LTAAtmosphere
+from .merra2_daily import MERRA2DailyAtmosphere
 
+custom_atmosphere = CustomAtmosphere()
 
-def register(name, atmosphere_cls):
-    global databases
-    if issubclass(atmosphere_cls, BaseAtmosphere):
-        databases.update({name: atmosphere_cls()})
-
-
-databases = {}
-
-register('merra2_cda', MERRA2CDAAtmosphere)
-register('merra2_lta', MERRA2LTAAtmosphere)
-
-if (sys.version_info.major, sys.version_info.minor) < (3, 10):
-    _entry_points = importlib.metadata.entry_points().get('pysparta.atmos', [])
-else:
-    _entry_points = importlib.metadata.entry_points(group='pysparta.atmos')
-
-for _atmos_db in _entry_points:
-    register(_atmos_db.name, _atmos_db.load())
+@dataclasses.dataclass
+class Atmosphere:
+    crs_soda = CRSSODAAtmosphere()
+    merra2_gee = MERRA2GEEAtmosphere()
+    merra2_cda = MERRA2CDAAtmosphere()
+    merra2_lta = MERRA2LTAAtmosphere()
+    merra2_daily = MERRA2DailyAtmosphere()
