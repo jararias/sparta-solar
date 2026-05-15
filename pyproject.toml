@@ -7,7 +7,7 @@ name = "pysparta"
 version = "0.1.0"
 description = "Solar PArameterization for the Radiative Transfer of the Atmosphere"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 authors = [{name = "Jose A Ruiz-Arias", email = "jararias@uma.es"}]
 license = {text = "CC BY-NC-SA 4.0"}
 classifiers = [
@@ -34,22 +34,10 @@ dependencies = [
     "zarr>=3.2.1",
 ]
 
-[project.optional-dependencies]
-docs = [
-    "mkdocs>=1.6.1",
-    "mkdocs-material>=9.7.6",
-    "mkdocstrings[python]>=1.0.4",
-    "pymdown-extensions>=10.21.2",
-    "zensical>=0.0.41",
-]
-
-merra2-daily = [
-    "huggingface-hub>=1.14.0",
-]
-
-merra2-gee = [
-    "earthengine-api>=1.7.26",
-]
+[tool.uv-build.targets.wheel]
+# Equivale a package-dir = {"" = "."} y packages.find (namespaces = true) en setuptools
+# uv-build busca automáticamente paquetes con __init__.py o directorios de namespaces
+packages = ["pysparta"]
 
 [dependency-groups]
 dev = [
@@ -59,11 +47,6 @@ dev = [
     "matplotlib>=3.10.9",
     "panel>=1.8.10",
     "pyqt6>=6.11.0",
-    "pytest>=8.0.0",
-    "pytest-cov>=6.0.0",
-    "pytest-mock>=3.12.0",
-    "python-dotenv>=1.2.2",
-    "ruff>=0.15.12",
 ]
 
 [tool.uv-build]
@@ -118,3 +101,11 @@ exclude_lines = [
     "if TYPE_CHECKING:",
     "@abstractmethod",
 ]
+
+[tool.uv-build.targets.wheel]
+# Equivale a package-dir = {"" = "."} y packages.find (namespaces = true) en setuptools
+# uv-build busca automáticamente paquetes con __init__.py o directorios de namespaces
+packages = ["pysparta"]
+
+[tool.uv.sources]
+sunwhere = { git = "https://github.com/jararias/sunwhere" }

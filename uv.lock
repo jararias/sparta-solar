@@ -2852,6 +2852,7 @@ wheels = [
 name = "sunwhere"
 version = "1.3.4"
 source = { git = "https://github.com/jararias/sunwhere#881c18133c680aaddf467c36830f5b70617247a4" }
+source = { git = "https://github.com/jararias/sunwhere#881c18133c680aaddf467c36830f5b70617247a4" }
 dependencies = [
     { name = "loguru" },
     { name = "numexpr" },
