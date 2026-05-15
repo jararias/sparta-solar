@@ -39,6 +39,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.ipython/
 
 # Documentation
 site/
