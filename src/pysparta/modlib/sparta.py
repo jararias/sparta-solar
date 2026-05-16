@@ -202,10 +202,10 @@ def SPARTA(
     
     References
     ----------
-    .. [1] Arias, J. R., & Ruiz-Arias, J. A. (2025). Solar Parameterization 
-           of the Radiative Transfer of the Atmosphere (SPARTA): A two-band 
-           broadband clear-sky solar radiation model. Solar Energy, 280, 112836.
-           https://doi.org/10.1016/j.solener.2024.112836
+    .. [1] Ruiz-Arias, J. A. (2023). SPARTA: Solar parameterization for
+           the radiative transfer of the cloudless atmosphere. Renewable
+           and Sustainable Energy Reviews*, 188, 113833.
+           https://doi.org/10.1016/j.rser.2023.113833
     """
 
     cosz, pressure, albedo, pwater, ozone, beta, alpha, ssa, asy, ecf, restore_shape = \

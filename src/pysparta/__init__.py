@@ -6,7 +6,6 @@ import importlib.metadata
 from loguru import logger
 
 from . import config
-from .atmoslib import Atmosphere as model_atmosphere, custom_atmosphere
 from .logtools import set_logger
 
 try:

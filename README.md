@@ -2,7 +2,7 @@
 
 **Solar PArameterization of the Radiative Transfer of the Atmosphere**
 
-[![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/downloads/)
+[![Python Version](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-103%20passing-success)](tests/)
 
@@ -66,7 +66,7 @@ pip install -e ".[dev]"
 
 ```python
 import pandas as pd
-from pysparta.atmoslib import MERRA2DailyAtmosphere
+from pysparta.atmosphere import merra2_daily
 
 # Define time and location
 times = pd.date_range("2020-06-15", periods=24, freq="h")
@@ -74,7 +74,7 @@ latitude = 36.72   # Málaga, Spain
 longitude = -4.42
 
 # Retrieve atmospheric data
-atm = MERRA2DailyAtmosphere.at_sites(
+atm = merra2_daily.at_sites(
     times=times,
     latitude=latitude,
     longitude=longitude,
@@ -121,7 +121,7 @@ lons = np.linspace(-5.0, -3.0, 20)
 times = pd.date_range("2020-06-15 12:00", periods=1, freq="h")
 
 # Get gridded atmospheric data
-atm = MERRA2DailyAtmosphere.on_regular_grid(
+atm = merra2_daily.on_regular_grid(
     times=times,
     latitude=lats,
     longitude=lons
@@ -144,9 +144,9 @@ pysparta separates atmospheric data retrieval from radiation calculations:
 
 ```python
 # Step 1: Get atmospheric constituents (aerosols, water vapor, ozone, etc.)
-from pysparta.atmoslib import MERRA2DailyAtmosphere
+from pysparta.atmosphere import merra2_daily
 
-atm = MERRA2DailyAtmosphere.at_sites(
+atm = merra2_daily.at_sites(
     times=times,
     latitude=36.72,
     longitude=-4.42
@@ -164,7 +164,7 @@ result = atm.compute(model="SPARTA")
 
 **Site-based (time series at fixed locations):**
 ```python
-atm = atmosphere.at_sites(
+atm = merra2_daily.at_sites(
     times=times,
     latitude=[36.72, 40.42],      # Multiple sites
     longitude=[-4.42, -3.70],
@@ -175,7 +175,7 @@ atm = atmosphere.at_sites(
 
 **Grid-based (spatial maps):**
 ```python
-atm = atmosphere.on_regular_grid(
+atm = merra2_daily.on_regular_grid(
     times=times,
     latitude=np.arange(36, 41, 0.5),
     longitude=np.arange(-5, -3, 0.5)
@@ -204,50 +204,44 @@ result.to_netcdf("output.nc")
 
 ## 🌍 Atmospheric Data Sources
 
-### MERRA2DailyAtmosphere (Recommended)
-
-Daily NASA MERRA-2 reanalysis data (1980-present):
+### Daily NASA MERRA-2 reanalysis data (1980-present):
 
 ```python
-from pysparta.atmoslib import MERRA2DailyAtmosphere
+from pysparta.atmosphere import merra2_daily
 
-atm = MERRA2DailyAtmosphere.at_sites(
+atm = merra2_daily.at_sites(
     times=pd.date_range("2020-01-01", "2020-12-31", freq="h"),
     latitude=36.72,
     longitude=-4.42
 )
 ```
 
-**Coverage**: Global | **Resolution**: 0.5° × 0.625° | **Temporal**: Hourly
+**Coverage**: Global | **Resolution**: 0.5° × 0.625° | **Temporal**: Daily
 
-### MERRA2LTAAtmosphere
+**Use Case**: Simulations on regular grids.
 
-Long-term monthly averages (1999-2018 climatology):
+### Long-term monthly averages (1999-2018 climatology):
 
 ```python
-from pysparta.atmoslib import MERRA2LTAAtmosphere
+from pysparta.atmosphere import merra2_lta
 
-atm = MERRA2LTAAtmosphere.at_sites(
-    times=pd.date_range("2023-01-01", periods=12, freq="MS"),
+atm = merra2_lta.at_sites(
+    times=pd.date_range("2020-01-01", "2020-12-31", freq="h"),
     latitude=36.72,
     longitude=-4.42
 )
 ```
 
-**Use case**: Typical meteorological year (TMY) generation
-
-### CRSSODAAtmosphere
-
-Copernicus Radiation Service via SODA API (requires registration):
+### Copernicus Radiation Service via SODA API (requires registration):
 
 ```python
 from pysparta import config
-from pysparta.atmoslib import CRSSODAAtmosphere
+from pysparta.atmosphere import crs_soda
 
 # Configure user email (one-time setup)
 config.set_option('crs_soda.user_email', 'your.email@example.com')
 
-atm = CRSSODAAtmosphere.at_site(
+atm = crs_soda.at_site(
     times=times,
     latitude=36.72,
     longitude=-4.42
@@ -256,18 +250,16 @@ atm = CRSSODAAtmosphere.at_site(
 
 **Coverage**: 2004-present | **Resolution**: 1-minute (resampled to hourly)
 
-### MERRA2GEEAtmosphere
-
-Access MERRA-2 via Google Earth Engine (requires GEE account):
+### Hourly MERRA-2 via Google Earth Engine (requires GEE account):
 
 ```python
 from pysparta import config
-from pysparta.atmoslib import MERRA2GEEAtmosphere
+from pysparta.atmosphere import merra2_gee
 
 # Configure GEE project
 config.set_option('merra2_gee.project', 'your-gee-project-id')
 
-atm = MERRA2GEEAtmosphere.at_site(
+atm = merra2_gee.at_site(
     times=times,
     latitude=36.72,
     longitude=-4.42
@@ -276,13 +268,11 @@ atm = MERRA2GEEAtmosphere.at_site(
 
 **Note**: Automatically corrects GEE's 0.25° latitude grid offset
 
-### CustomAtmosphere
-
-Use your own atmospheric measurements:
+### Use your own atmospheric choices:
 
 ```python
 import numpy as np
-from pysparta.atmoslib import CustomAtmosphere
+from pysparta.atmosphere import custom
 
 times = pd.date_range("2020-06-01", periods=24, freq="h")
 constituents = {
@@ -294,7 +284,7 @@ constituents = {
     "albedo": np.full((24, 1), 0.2)
 }
 
-atm = CustomAtmosphere.at_sites(
+atm = custom.at_sites(
     times=times,
     latitude=36.72,
     longitude=-4.42,
@@ -332,34 +322,6 @@ result = SPARTA(
 
 csi_fraction = result['csi'] / result['dni']
 print(f"CSI accounts for {csi_fraction:.2%} of DNI")
-```
-
-### Transmittance Schemes
-
-```python
-# Interdependent scheme (default, more accurate)
-result_inter = SPARTA(
-    cosz=0.8,
-    transmittance_scheme='interdependent'
-)
-
-# Independent scheme (faster, less accurate)
-result_indep = SPARTA(
-    cosz=0.8,
-    transmittance_scheme='independent'
-)
-```
-
-### Custom Aerosol Properties
-
-```python
-result = SPARTA(
-    cosz=0.866,
-    beta=0.2,      # High turbidity
-    alpha=0.8,     # Coarse particles (dust)
-    ssa=0.88,      # Slightly absorbing
-    asy=0.70       # Forward scattering
-)
 ```
 
 ---
@@ -470,6 +432,7 @@ pysparta/
 │   ├── _base.py         # Base classes and utilities
 │   ├── merra2_daily.py  # MERRA-2 daily data
 │   ├── merra2_lta.py    # MERRA-2 long-term averages
+│   ├── merra2_cda.py    # MERRA-2 clean-and-dry atmosphere
 │   ├── merra2_geeapi.py # MERRA-2 via Google Earth Engine
 │   ├── crs_sodaapi.py   # CRS SODA API access
 │   └── custom.py        # Custom atmospheric data
@@ -484,19 +447,20 @@ pysparta/
 
 If you use pysparta in your research, please cite:
 
-**Ruiz-Arias, J. A., & Arias, J. R.** (2025). Solar Parameterization of the Radiative Transfer of the Atmosphere (SPARTA): A two-band broadband clear-sky solar radiation model. *Solar Energy*, 280, 112836. https://doi.org/10.1016/j.solener.2024.112836
+**Ruiz-Arias, J. A.** (2023). SPARTA: Solar parameterization for the radiative transfer of the cloudless atmosphere. *Renewable and Sustainable Energy Reviews*, 188, 113833.
+https://doi.org/10.1016/j.rser.2023.113833
 
 **BibTeX:**
 ```bibtex
 @article{ruiz2025sparta,
-  title={Solar Parameterization of the Radiative Transfer of the Atmosphere (SPARTA): A two-band broadband clear-sky solar radiation model},
-  author={Ruiz-Arias, Jose A. and Arias, Javier R.},
-  journal={Solar Energy},
-  volume={280},
-  pages={112836},
-  year={2025},
+  title={{SPARTA: Solar parameterization for the radiative transfer of the cloudless atmosphere}},
+  author={Ruiz-Arias, Jose A.},
+  journal={Renewable and Sustainable Energy Reviews},
+  volume={188},
+  pages={113833},
+  year={2023},
   publisher={Elsevier},
-  doi={10.1016/j.solener.2024.112836}
+  doi={10.1016/j.rser.2023.113833}
 }
 ```
 
