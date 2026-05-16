@@ -1,3 +1,66 @@
+"""MERRA-2 Atmospheric Data via Google Earth Engine API.
+
+This module provides access to NASA MERRA-2 reanalysis atmospheric data
+through Google Earth Engine (GEE). It retrieves hourly atmospheric constituents
+including aerosol properties, water vapor, ozone, and surface parameters.
+
+Data is accessed from three GEE collections:
+- NASA/GSFC/MERRA/aer/2: Aerosol optical properties (AOD, Ångström parameters, SSA)
+- NASA/GSFC/MERRA/slv/2: Single-level diagnostics (pressure, ozone, water vapor)
+- NASA/GSFC/MERRA/rad/2: Radiation parameters (surface albedo)
+
+Data availability: 1980-01-01 to near real-time (updated with ~2-3 week lag)
+Temporal resolution: Hourly (time-averaged)
+Spatial resolution: 0.5° × 0.625° (latitude × longitude)
+
+Requirements
+------------
+- Google Earth Engine account (https://earthengine.google.com/)
+- GEE Python API authentication
+- Active GEE project
+
+Examples
+--------
+Retrieve MERRA-2 data via GEE for a specific site:
+
+>>> import pandas as pd
+>>> from pysparta.atmoslib import MERRA2GEEAtmosphere
+>>> from pysparta import config
+>>>
+>>> # Configure GEE project
+>>> config.set_option('merra2_gee.project', 'your-gee-project-id')
+>>>
+>>> times = pd.date_range("2020-06-15", periods=24, freq="h")
+>>> atm = MERRA2GEEAtmosphere.at_site(
+...     times=times,
+...     latitude=36.72,
+...     longitude=-4.42,
+...     site_name="Málaga"
+... )
+>>> print(atm.dataset)
+
+Notes
+-----
+Important spatial correction:
+GEE's MERRA-2 ingestion shifted the latitude grid by 0.25° northward.
+This module automatically corrects for this offset by subtracting 0.25°
+from query latitudes to retrieve the correct NASA grid cell.
+
+The time stamps in GEE are adjusted to hour start (00:00), while NASA
+uses hour center (00:30). This module corrects to NASA convention.
+
+See Also
+--------
+MERRA2DailyAtmosphere : Direct access to MERRA-2 via local Zarr files
+CRSSODAAtmosphere : Alternative using SODA API
+
+References
+----------
+.. [1] Gelaro et al. (2017), The Modern-Era Retrospective Analysis for
+       Research and Applications, Version 2 (MERRA-2). J. Climate, 30, 5419-5454.
+.. [2] Gorelick et al. (2017), Google Earth Engine: Planetary-scale geospatial
+       analysis for everyone. Remote Sensing of Environment, 202, 18-27.
+"""
 
 import functools
 from pathlib import Path
@@ -22,17 +85,27 @@ logger = logger.opt(colors=True)
 
 
 def get_database_path() -> Path:
-    """Get the path to the archive storage directory.
+    """Get the path to the MERRA-2 GEE data cache directory.
 
-    This function first checks for a custom directory path provided via system 
-    options (`crs_soda.data_dir`). If no custom path is configured, it defaults to the
-    platform-specific user data directory (typically, ~/.config in linux flavors).
-    In both cases, the function ensures the directory actually exists on the
-    filesystem before returning.
+    Checks for custom directory via config option `merra2_gee.data_dir`.
+    If not configured, defaults to platform-specific user data directory.
+    Creates the directory if it doesn't exist.
 
-    Returns:
-        Path: The filesystem path to the data directory (either the custom 
-            configured directory or the system default).
+    Returns
+    -------
+    Path
+        Directory path for cached GEE MERRA-2 data files
+        
+    Examples
+    --------
+    >>> from pysparta import config
+    >>> from pysparta.atmoslib.merra2_geeapi import get_database_path
+    >>>
+    >>> path = get_database_path()
+    >>> print(path)  # ~/.local/share/pysparta/merra2_gee (Linux)
+    >>>
+    >>> # Configure custom location
+    >>> config.set_option('merra2_gee.data_dir', '/data/merra2_gee')
     """
     data_dir = get_option("merra2_gee.data_dir", default=platformdirs.user_data_path("pysparta/merra2_gee"))
     if not data_dir.exists():
@@ -43,33 +116,42 @@ class MERRA2GEEAtmosphere(
     BaseAtmosphere,
     database_path=get_database_path()
 ):
+    """MERRA-2 atmospheric database via Google Earth Engine.
+    
+    Provides access to NASA MERRA-2 reanalysis via GEE API. Automatically
+    corrects for GEE's latitude grid offset and time stamp convention.
+    
+    Requires GEE authentication and active project configuration.
+    
+    See module documentation for setup instructions and examples.
+    """
 
     @classmethod
     def get_filename(cls, year: int, latitude: float, longitude: float) -> Path:
-        r"""Generates the full path for a specific archive file.
+        """Generate cache filename for GEE MERRA-2 data.
 
-        Constructs a filename using a standardized pattern for SoDA McClear data, 
-        including versioning, encoded coordinates, and year. The coordinates are 
-        multiplied by \(10^4\) and suffixed with cardinal direction indicators.
+        Constructs a standardized filename for cached data with encoded
+        coordinates and year.
 
-        Args:
-            year: The reference year for the data.
-            latitude: Geographical latitude, in decimal degrees (-90, 90).
-            longitude: Geographical longitude, in decimal degrees [-180, 180).
-            version: Version string for the dataset (e.g., "0.1.0").
+        Parameters
+        ----------
+        year : int
+            Year for the data
+        latitude : float
+            Latitude in degrees North [-90, 90]
+        longitude : float
+            Longitude in degrees East [-180, 180]
 
-        Returns:
-            Path: The absolute path to the .parquet file within the archive location.
+        Returns
+        -------
+        Path
+            Absolute path to the .parquet cache file
 
-        Examples:
-            >>> get_archive_filename(2023, 40.4168, -3.7038, "1.0.0")
-            # Resulting filename: "crs_soda_mcclear_v1.0.0_404168N_37038W_2023.parquet"
-
-        Notes:
-            Coordinates are formatted as follows:
-            - Multiplied by \(10^4\) and converted to integer strings.
-            - Signs are replaced by suffixes: 'N'/'S' for latitude and 'E'/'W' for longitude.
-            - Example: A latitude of `-12.34` becomes `123400S`.
+        Examples
+        --------
+        >>> path = MERRA2GEEAtmosphere.get_filename(2023, 40.4168, -3.7038)
+        >>> print(path.name)
+        # "merra2_gee_hourly_404168N_37038W_2023.parquet"
         """
         filename_pattern = "merra2_gee_hourly_{latitude}_{longitude}_{year}.parquet"
         latitude_str = f"{float(latitude)*1e4:.0f}"
@@ -87,6 +169,49 @@ class MERRA2GEEAtmosphere(
         longitude: float,
         site_name: str | None = None,
     ) -> Self:
+        """Retrieve MERRA-2 data from GEE for a specific site.
+        
+        Downloads data from GEE if not cached, applies spatial/temporal
+        corrections, then interpolates to requested times.
+        
+        Parameters
+        ----------
+        times : pd.DatetimeIndex
+            Time stamps for data retrieval (UTC)
+        latitude : float
+            Latitude in degrees North [-90, 90]
+        longitude : float
+            Longitude in degrees East [-180, 180]
+        site_name : str, optional
+            Name identifier for the site
+            
+        Returns
+        -------
+        MERRA2GEEAtmosphere
+            Instance with interpolated atmospheric data
+            
+        Examples
+        --------
+        >>> import pandas as pd
+        >>> from pysparta import config
+        >>> config.set_option('merra2_gee.project', 'my-gee-project')
+        >>>
+        >>> times = pd.date_range("2020-06-15", periods=24, freq="h")
+        >>> atm = MERRA2GEEAtmosphere.at_site(
+        ...     times=times,
+        ...     latitude=36.72,
+        ...     longitude=-4.42,
+        ...     site_name="Málaga"
+        ... )
+        >>> result = atm.compute(model="SPARTA")
+        
+        Notes
+        -----
+        - Requires `merra2_gee.project` configuration
+        - Automatically corrects GEE's 0.25° latitude offset
+        - Adjusts time stamps from hour-start to hour-center
+        - Data is cached locally to minimize API calls
+        """
 
         latitude = validate_type(latitude, Latitude)
         longitude = validate_type(longitude, Longitude)
@@ -150,6 +275,32 @@ class MERRA2GEEAtmosphere(
 
     @staticmethod
     def _infer_years_from_times(times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex) -> list[int]:
+        """Infer which years are needed based on requested times.
+        
+        Pads with extra years if times are within 3 hours of year boundaries
+        to ensure smooth temporal interpolation.
+        
+        Parameters
+        ----------
+        times : np.ndarray or pd.DatetimeIndex
+            Time stamps to analyze
+            
+        Returns
+        -------
+        list[int]
+            Sorted list of years needed (may include padding years)
+            
+        Examples
+        --------
+        >>> times = pd.date_range("2020-06-01", "2020-08-31", freq="h")
+        >>> years = MERRA2GEEAtmosphere._infer_years_from_times(times)
+        >>> print(years)  # [2020]
+        
+        >>> # Near year boundary - includes padding
+        >>> times = pd.date_range("2020-01-01 00:00", "2020-01-01 02:00", freq="h")
+        >>> years = MERRA2GEEAtmosphere._infer_years_from_times(times)
+        >>> print(years)  # [2019, 2020]
+        """
         the_times = times if isinstance(times, pd.DatetimeIndex) else pd.to_datetime(times)
         years = set(the_times.year)
         if (the_times[0] - pd.to_datetime(f"{min(years)}-01-01 00:00:00")) < pd.Timedelta(3, "h"):
@@ -160,6 +311,39 @@ class MERRA2GEEAtmosphere(
 
     @staticmethod
     def distill_crude_data(data: pd.DataFrame, lat: Latitude, lon: Longitude) -> pd.DataFrame:
+        """Refine raw GEE MERRA-2 data for clear-sky modeling.
+        
+        Performs post-processing on GEE data:
+        1. Adjusts time stamps from hour-start to hour-center (NASA convention)
+        2. Calculates solar zenith angle for albedo masking
+        3. Computes Ångström turbidity coefficient (beta) from AOD and alpha
+        4. Calculates aerosol single-scattering albedo (SSA)
+        5. Converts ozone from DU to kg/m²
+        
+        Parameters
+        ----------
+        data : pd.DataFrame
+            Raw data from GEE API with columns: TOTEXTTAU, TOTSCATAU,
+            TOTANGSTR, PS, TO3, TQV, ALBEDO
+        lat : float
+            Site latitude (for solar position calculation)
+        lon : float
+            Site longitude (for solar position calculation)
+            
+        Returns
+        -------
+        pd.DataFrame
+            Processed DataFrame with columns: times_utc, albedo, pressure,
+            ozone, pwater, beta, alpha, ssa
+            
+        Notes
+        -----
+        GEE time stamps are at hour start (e.g., 01:00 UTC), but MERRA-2
+        hourly averages represent the period centered at half-past (e.g., 01:30 UTC).
+        This function adds 30 minutes to correct the convention.
+        
+        Albedo is masked to 0 for solar zenith angles > 89°.
+        """
 
         # N.B. The Half-Hour Shift (Time-Averaged vs. GEE Timestamp)
         # These MERRA-2 products are time-averaged (tavg1_2d) hourly collections.
@@ -204,6 +388,62 @@ def fetch_merra2_data_from_gee_api(
     end_date: str,  # YYYY-mm-dd
     project: str,  # = "series-temporales-merra2",
 ) -> pd.DataFrame:
+    """Fetch MERRA-2 data from Google Earth Engine.
+    
+    Retrieves atmospheric constituent data from three GEE MERRA-2 collections,
+    applying the necessary latitude correction for GEE's grid offset.
+    Results are cached via LRU cache.
+    
+    Parameters
+    ----------
+    latitude : float
+        Latitude in degrees North [-90, 90]
+    longitude : float
+        Longitude in degrees East [-180, 180]
+    start_date : str
+        Start date in format "YYYY-MM-DD"
+    end_date : str
+        End date in format "YYYY-MM-DD"
+    project : str
+        Google Earth Engine project ID
+        
+    Returns
+    -------
+    pd.DataFrame
+        Raw data with columns from all three collections:
+        - TOTEXTTAU, TOTSCATAU, TOTANGSTR (aerosol collection)
+        - PS, TO3, TQV (single-level collection)
+        - ALBEDO (radiation collection)
+        
+    Examples
+    --------
+    >>> from pysparta.atmoslib.merra2_geeapi import fetch_merra2_data_from_gee_api
+    >>> data = fetch_merra2_data_from_gee_api(
+    ...     latitude=36.72,
+    ...     longitude=-4.42,
+    ...     start_date="2020-06-01",
+    ...     end_date="2020-06-30",
+    ...     project="my-gee-project"
+    ... )
+    >>> print(data.columns)
+    
+    Notes
+    -----
+    Critical spatial correction:
+    GEE's MERRA-2 ingestion shifted the latitude grid by 0.25° northward.
+    This function automatically subtracts 0.25° from the query latitude
+    to retrieve the correct NASA grid cell.
+    
+    Collections accessed:
+    - NASA/GSFC/MERRA/aer/2: Aerosol optical properties
+    - NASA/GSFC/MERRA/slv/2: Single-level diagnostics  
+    - NASA/GSFC/MERRA/rad/2: Radiation parameters
+    
+    Raises
+    ------
+    ee.EEException
+        If GEE authentication fails or project is invalid
+    """
 
     latitude = validate_type(latitude, Latitude)
     longitude = validate_type(longitude, Longitude)

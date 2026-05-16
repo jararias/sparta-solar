@@ -25,7 +25,6 @@ dependencies = [
     "loguru>=0.7.3",
     "netcdf4>=1.7.4",
     "numpy>=2.4.4",
-    "numpy>=2.4.4",
     "pandas>=3.0.2",
     "platformdirs>=4.9.6",
     "pyarrow>=24.0.0",

@@ -1,3 +1,59 @@
+"""CRS SODA API Atmospheric Data Interface.
+
+This module provides access to atmospheric constituent data from the
+Copernicus Radiation Service (CRS) via the SODA (Solar Data) Web Processing
+Service (WPS) API. It retrieves McClear clear-sky model inputs including:
+
+- Aerosol optical properties (AOD, Ångström parameters)
+- Water vapor (precipitable water)
+- Ozone (total column)
+- Surface albedo
+- Surface pressure (estimated from altitude)
+
+Data is retrieved at 1-minute temporal resolution and resampled to hourly
+averages. Retrieved data is automatically cached locally to minimize API calls.
+
+Data availability: 2004-01-01 to near real-time (updated daily)
+
+Examples
+--------
+Retrieve atmospheric data for a specific site:
+
+>>> import pandas as pd
+>>> from pysparta.atmoslib import CRSSODAAtmosphere
+>>> from pysparta import config
+>>>
+>>> # Configure your SODA email (required for API access)
+>>> config.set_option('crs_soda.user_email', 'your.email@example.com')
+>>>
+>>> times = pd.date_range("2020-06-15", periods=24, freq="h")
+>>> atm = CRSSODAAtmosphere.at_site(
+...     times=times,
+...     latitude=36.72,
+...     longitude=-4.42,
+...     site_name="Málaga"
+... )
+>>> print(atm.dataset)
+
+Notes
+-----
+Requires registration at https://www.soda-pro.com/ to obtain a user email
+for API access. Configure it using:
+
+>>> from pysparta import config
+>>> config.set_option('crs_soda.user_email', 'your.email@example.com')
+
+See Also
+--------
+MERRA2DailyAtmosphere : Alternative using NASA MERRA-2 data
+MERRA2GEEAtmosphere : MERRA-2 via Google Earth Engine
+
+References
+----------
+.. [1] Lefèvre, M., et al. (2013). McClear: a new model estimating downwelling
+       solar radiation at ground level in clear-sky conditions. Atmospheric
+       Measurement Techniques, 6, 2403-2418.
+"""
 
 import functools
 import re
@@ -23,17 +79,29 @@ logger = logger.opt(colors=True)
 
 
 def get_database_path() -> Path:
-    """Get the path to the archive storage directory.
+    """Get the path to the CRS SODA data cache directory.
 
-    This function first checks for a custom directory path provided via system 
-    options (`crs_soda.data_dir`). If no custom path is configured, it defaults to the
-    platform-specific user data directory (typically, ~/.config in linux flavors).
-    In both cases, the function ensures the directory actually exists on the
-    filesystem before returning.
+    Checks for a custom directory path via config option `crs_soda.data_dir`.
+    If not configured, defaults to the platform-specific user data directory.
+    Creates the directory if it doesn't exist.
 
-    Returns:
-        Path: The filesystem path to the data directory (either the custom 
-            configured directory or the system default).
+    Returns
+    -------
+    Path
+        Directory path for cached CRS SODA data files
+        
+    Examples
+    --------
+    >>> from pysparta import config
+    >>> from pysparta.atmoslib.crs_sodaapi import get_database_path
+    >>>
+    >>> # Use default location
+    >>> path = get_database_path()
+    >>> print(path)  # ~/.local/share/pysparta/crs_soda (Linux)
+    >>>
+    >>> # Configure custom location
+    >>> config.set_option('crs_soda.data_dir', '/data/crs_soda')
+    >>> path = get_database_path()
     """
     data_dir = get_option("crs_soda.data_dir", default=platformdirs.user_data_path("pysparta/crs_soda"))
     if not data_dir.exists():
@@ -45,33 +113,53 @@ class CRSSODAAtmosphere(
     BaseAtmosphere,
     database_path=get_database_path()
 ):
+    """CRS SODA (Copernicus Radiation Service) atmospheric database.
+    
+    Provides access to atmospheric constituent data from the SODA McClear
+    service via WPS API. Data is cached locally after first retrieval.
+    
+    Requires user registration at https://www.soda-pro.com/ and email
+    configuration via `crs_soda.user_email` config option.
+    
+    See module documentation for examples.
+    """
 
     @classmethod
     def get_filename(cls, year: int, latitude: float, longitude: float, version: str) -> Path:
-        r"""Generates the full path for a specific archive file.
+        r"""Generate the cache filename for CRS SODA data.
 
-        Constructs a filename using a standardized pattern for SoDA McClear data, 
-        including versioning, encoded coordinates, and year. The coordinates are 
-        multiplied by \(10^4\) and suffixed with cardinal direction indicators.
+        Constructs a standardized filename pattern for cached data including
+        version, encoded coordinates, and year. Coordinates are multiplied by
+        $10^4$ and suffixed with cardinal direction indicators.
 
-        Args:
-            year: The reference year for the data.
-            latitude: Geographical latitude, in decimal degrees (-90, 90).
-            longitude: Geographical longitude, in decimal degrees [-180, 180).
-            version: Version string for the dataset (e.g., "0.1.0").
+        Parameters
+        ----------
+        year : int
+            Year for the data
+        latitude : float
+            Latitude in degrees North [-90, 90]
+        longitude : float
+            Longitude in degrees East [-180, 180]
+        version : str
+            API version string (e.g., "1.0.0")
 
-        Returns:
-            Path: The absolute path to the .parquet file within the archive location.
+        Returns
+        -------
+        Path
+            Absolute path to the .parquet cache file
 
-        Examples:
-            >>> get_archive_filename(2023, 40.4168, -3.7038, "1.0.0")
-            # Resulting filename: "crs_soda_mcclear_v1.0.0_404168N_37038W_2023.parquet"
+        Examples
+        --------
+        >>> path = CRSSODAAtmosphere.get_filename(2023, 40.4168, -3.7038, "1.0.0")
+        >>> print(path.name)
+        # "crs_soda_mcclear_v1.0.0_404168N_37038W_2023.parquet"
 
-        Notes:
-            Coordinates are formatted as follows:
-            - Multiplied by \(10^4\) and converted to integer strings.
-            - Signs are replaced by suffixes: 'N'/'S' for latitude and 'E'/'W' for longitude.
-            - Example: A latitude of `-12.34` becomes `123400S`.
+        Notes
+        -----
+        Coordinate encoding:
+        - Multiplied by $10^4$ and converted to integers
+        - Signs replaced by suffixes: 'N'/'S' for latitude, 'E'/'W' for longitude
+        - Example: latitude -12.34 becomes "123400S"
         """
         filename_pattern = "crs_soda_mcclear_v{version}_{latitude}_{longitude}_{year}.parquet"
         latitude_str = f"{float(latitude)*1e4:.0f}"
@@ -89,6 +177,48 @@ class CRSSODAAtmosphere(
         longitude: float,
         site_name: str | None = None,
     ) -> Self:
+        """Retrieve CRS SODA atmospheric data for a specific site.
+        
+        Downloads data from SODA API if not cached, then interpolates to
+        requested times. Data is automatically resampled to hourly resolution.
+        
+        Parameters
+        ----------
+        times : pd.DatetimeIndex
+            Time stamps for data retrieval (UTC)
+        latitude : float
+            Latitude in degrees North [-90, 90]
+        longitude : float
+            Longitude in degrees East [-180, 180]
+        site_name : str, optional
+            Name identifier for the site
+            
+        Returns
+        -------
+        CRSSODAAtmosphere
+            Instance with interpolated atmospheric data
+            
+        Examples
+        --------
+        >>> import pandas as pd
+        >>> from pysparta import config
+        >>> config.set_option('crs_soda.user_email', 'user@example.com')
+        >>>
+        >>> times = pd.date_range("2020-01-01", "2020-01-31", freq="h")
+        >>> atm = CRSSODAAtmosphere.at_site(
+        ...     times=times,
+        ...     latitude=36.72,
+        ...     longitude=-4.42,
+        ...     site_name="Málaga"
+        ... )
+        >>> result = atm.compute(model="SPARTA")
+        
+        Notes
+        -----
+        - Requires `crs_soda.user_email` configuration
+        - Data is cached locally to minimize API calls
+        - Temporal interpolation uses quadratic splines
+        """
 
         version: str = "1.0.0"
         save_csv: bool = True  # for debugging and reproducibility. The csv files are saved in the same directory as the parquet files, with the same name but .csv extension instead of .parquet
@@ -168,29 +298,42 @@ class CRSSODAAtmosphere(
 
     @staticmethod
     def distill_crude_data(data: pd.DataFrame, metadata: list[str]) -> pd.DataFrame:
-        r"""Refines and enriches raw CRS data for clear-sky evaluations.
+        r"""Refine and enrich raw CRS data for clear-sky modeling.
 
-        This function performs several post-processing steps:
-        1.  Calculates AOD550 and estimates the Angström exponent (\(\alpha\)) 
-            using a weighted average of aerosol mixtures if missing.
-        2.  Estimates local barometric pressure from altitude using Laplace's formula.
-        3.  Resamples the dataset to 1-hour intervals with center-time alignment.
+        Performs post-processing on SODA API data:
+        1. Calculates AOD550 and estimates Ångström exponent ($\alpha$) using
+           weighted average of aerosol mixture optical properties
+        2. Estimates surface pressure from site altitude using barometric formula
+        3. Resamples to 1-hour intervals with center-time alignment
 
-        Args:
-            data: Raw DataFrame retrieved from the SoDA API.
-            metadata: List of metadata strings containing site information (e.g., altitude).
+        Parameters
+        ----------
+        data : pd.DataFrame
+            Raw data from SODA API
+        metadata : list[str]
+            Metadata lines from API response (contains altitude)
 
-        Returns:
-            pd.DataFrame: A cleaned DataFrame containing columns: `times_utc`, 
-                `pressure`, `albedo`, `pwater`, `ozone`, `aod550`, `beta`, and `alpha`.
+        Returns
+        -------
+        pd.DataFrame
+            Processed DataFrame with columns: times_utc, pressure, albedo,
+            pwater, ozone, aod550, beta, alpha
 
-        Notes:
-            The \(\alpha\) estimation uses typical values for aerosol species 
-            (DU, SS, BC, etc.) based on Bozzo et al. (2017).
+        Notes
+        -----
+        The $\alpha$ estimation uses typical values for aerosol species
+        from CAMS Reanalysis:
+        - Desert dust (DU): 0.3 (coarse particles)
+        - Sea salt (SS): 0.5 (large hygroscopic particles)
+        - Black carbon (BC): 1.2 (fine combustion particles)
+        - Organic matter (OR): 1.8 (fine particles)
+        - Sulphates (SU): 1.7 (very fine scatterers)
+        - Nitrates (NI), Ammonium (AM): 1.9
 
-        References:
-            - Bozzo et al. (2017). Implementation of a CAMS-based aerosol climatology 
-            in the IFS, ECMWF. [Online](https://www.ecmwf.int/sites/default/files/elibrary/2017/17219-implementation-cams-based-aerosol-climatology-ifs.pdf)
+        References
+        ----------
+        .. [1] Bozzo et al. (2017). Implementation of a CAMS-based aerosol
+               climatology in the IFS, ECMWF.
         """
         def barometric_formula_laplace(
             z: float,
@@ -277,34 +420,64 @@ def fetch_crs_data_from_soda_api(
     timeout: int = 30,
     to_csv: Path | str = None,
 ) -> tuple[pd.DataFrame, list[str]]:
-    r"""Retrieves radiation and atmospheric data from the SoDA CRS WPS service.
+    """Fetch atmospheric data from SODA CRS Web Processing Service.
 
-    This function performs a synchronous GET request to the SoDA Solar Data API,
-    parsing the returned CSV-like format into a structured DataFrame and a list
-    of metadata strings. Results are cached to minimize redundant API calls.
+    Performs a synchronous GET request to the SODA API, parsing the CSV
+    response into a DataFrame and metadata. Results are cached via LRU cache
+    to minimize redundant API calls.
 
-    Args:
-        latitude: Geographical latitude, in decimal degrees (-90, 90).
-        longitude: Geographical longitude, in decimal degrees [-180, 180).
-        date_begin: Start date of the period, YYYY-MM-DD.
-        date_end: End date of the period, YYYY-MM-DD.
-        user_email: Registered email for the SoDA service. If not provided, 
-            the system searches in the configuration file (`soda_user_email`).
-        time_step: Temporal resolution of the data. See [SodaTimeStep][pysparta.types.SodaTimeStep]
-            for allowed values.
-        stream: The specific SoDA data stream to query. See [SodaStream][pysparta.types.SodaStream]
-            for allowed values.
-        version: WPS service version. Defaults to "1.0.0".
-        timeout: Request timeout in seconds. Defaults to 30.
+    Parameters
+    ----------
+    latitude : float
+        Latitude in degrees North [-90, 90]
+    longitude : float
+        Longitude in degrees East [-180, 180]
+    date_begin : str
+        Start date in format "YYYY-MM-DD"
+    date_end : str
+        End date in format "YYYY-MM-DD"
+    user_email : str
+        Registered SODA user email
+    time_step : str
+        Temporal resolution: "PT01M" (1-minute) or "PT15M" (15-minute)
+    stream : str
+        Data stream: "mcclear" for clear-sky inputs
+    version : str, default "1.0.0"
+        WPS service version
+    timeout : int, default 30
+        Request timeout in seconds
+    to_csv : Path or str, optional
+        If provided, save raw CSV response to this path
 
-    Returns:
-        tuple[pd.DataFrame, list[str]]: A tuple containing:
-            - The processed DataFrame with CRS data.
-            - A list of metadata lines (comments starting with '#').
+    Returns
+    -------
+    tuple[pd.DataFrame, list[str]]
+        - DataFrame with atmospheric variables
+        - List of metadata comment lines
 
-    Raises:
-        requests.exceptions.HTTPError: If the API returns an error status code,
-            including the specific SoDA exception text in the reason.
+    Raises
+    ------
+    ValueError
+        If date range is invalid or outside data availability
+    requests.HTTPError
+        If API returns error status (includes SODA exception text)
+
+    Examples
+    --------
+    >>> from pysparta.atmoslib.crs_sodaapi import fetch_crs_data_from_soda_api
+    >>> data, metadata = fetch_crs_data_from_soda_api(
+    ...     latitude=36.72,
+    ...     longitude=-4.42,
+    ...     date_begin="2020-06-01",
+    ...     date_end="2020-06-30",
+    ...     user_email="user@example.com",
+    ...     time_step="PT01M",
+    ...     stream="mcclear"
+    ... )
+    
+    Notes
+    -----
+    Function is cached with LRU cache - identical calls return cached results.
     """
     latitude = validate_type(latitude, Latitude)
     longitude = validate_type(longitude, Longitude)

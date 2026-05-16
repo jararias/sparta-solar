@@ -48,7 +48,7 @@ plugins:
             - http://pandas.pydata.org/pandas-docs/stable/objects.inv
             - https://docs.xarray.dev/en/stable/objects.inv
           options:
-            docstring_style: google
+            docstring_style: numpy
             show_root_heading: true
             show_source: true
 

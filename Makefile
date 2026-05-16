@@ -5,7 +5,7 @@ ipython3:
 
 .PHONY: init-venv
 init-venv:
-	@uv sync --reinstall
+	@uv sync --reinstall --all-extras
 	@attr -s com.dropbox.ignored -V 1 .venv  # instruct dropbox to ignore the .venv folder
 
 .PHONY: clean
@@ -16,6 +16,10 @@ clean:
 	@rm -rf .pytest_cache
 	@rm -f MANIFEST
 	@find . -name "__pycache__" -print0 | xargs -0 -I {} /bin/rm -rf "{}"
+
+.PHONY: tests
+tests:
+	@uv run pytest tests/unit/ -v
 
 .PHONY: mkdocs
 mkdocs:

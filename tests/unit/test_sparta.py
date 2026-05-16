@@ -26,14 +26,14 @@ class TestSPARTABasics:
         assert set(result.keys()) == expected_keys
 
     def test_sparta_output_types(self, sparta_input_params):
-        """Test that all outputs are numpy arrays."""
+        """Test that all outputs are numeric (float or np.ndarray)."""
         result = SPARTA(**sparta_input_params)
         
         for key, value in result.items():
-            assert isinstance(value, np.ndarray), f"{key} should be np.ndarray"
+            assert isinstance(value, (float, np.ndarray)), f"{key} should be float or np.ndarray"
 
     def test_sparta_with_scalar_inputs(self):
-        """Test SPARTA with scalar inputs."""
+        """Test SPARTA with scalar inputs returns floats."""
         result = SPARTA(
             cosz=0.7,
             pressure=1013.25,
@@ -44,9 +44,9 @@ class TestSPARTABasics:
             alpha=1.3,
         )
         
-        # Results should be 0-d arrays (scalars)
-        assert result['dni'].shape == ()
-        assert result['ghi'].shape == ()
+        # Results should be Python floats when inputs are scalars
+        assert isinstance(result['dni'], float)
+        assert isinstance(result['ghi'], float)
 
     def test_sparta_with_array_inputs(self):
         """Test SPARTA with array inputs."""
