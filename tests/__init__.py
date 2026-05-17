@@ -1,1 +1,1 @@
-"""Test suite for pysparta."""
+"""Test suite for sparta-solar."""

@@ -15,7 +15,7 @@ Examples
 --------
 Basic usage with scalar inputs:
 
->>> from pysparta.modlib import SPARTA
+>>> from spartasolar.modlib import SPARTA
 >>> result = SPARTA(
 ...     cosz=0.866,  # 30° zenith angle
 ...     pressure=1013.25,  # sea level
@@ -138,7 +138,7 @@ def SPARTA(
     --------
     Single location and time:
     
-    >>> from pysparta.modlib import SPARTA
+    >>> from spartasolar.modlib import SPARTA
     >>> result = SPARTA(
     ...     cosz=0.866,  # 30° solar zenith angle
     ...     pressure=1013.25,
@@ -198,7 +198,7 @@ def SPARTA(
 
     See Also
     --------
-    pysparta.modlib.bird : Alternative Bird clear-sky model
+    spartasolar.modlib.bird : Alternative Bird clear-sky model
     
     References
     ----------

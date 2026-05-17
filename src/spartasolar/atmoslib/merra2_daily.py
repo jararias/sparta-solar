@@ -17,7 +17,7 @@ Data Source:
 
 Examples:
     >>> import pandas as pd
-    >>> from pysparta.atmoslib import MERRA2DailyAtmosphere
+    >>> from spartasolar.atmoslib import MERRA2DailyAtmosphere
     
     >>> # Load atmospheric data for a specific location
     >>> times = pd.date_range("2020-01-01", periods=10, freq="D")
@@ -75,13 +75,13 @@ def get_database_path() -> Path:
         Path: Directory path where MERRA-2 daily data is stored/cached.
         
     Examples:
-        >>> from pysparta.atmoslib.merra2_daily import get_database_path
+        >>> from spartasolar.atmoslib.merra2_daily import get_database_path
         >>> db_path = get_database_path()
         >>> print(db_path.exists())
         True
     """
     user_path = (get_option("merra2_daily.data_dir") or
-                 platformdirs.user_data_path('pysparta/merra2-daily'))
+                 platformdirs.user_data_path('spartasolar/merra2-daily'))
     if not user_path.exists():
         user_path.mkdir(parents=True, exist_ok=True)
     return user_path
@@ -148,7 +148,7 @@ class MERRA2DailyAtmosphere(
                 
         Examples:
             >>> import pandas as pd
-            >>> from pysparta.atmoslib import MERRA2DailyAtmosphere
+            >>> from spartasolar.atmoslib import MERRA2DailyAtmosphere
             
             >>> # Single location
             >>> times = pd.date_range("2020-01-01", periods=5, freq="D")
@@ -244,7 +244,7 @@ class MERRA2DailyAtmosphere(
         Examples:
             >>> import pandas as pd
             >>> import numpy as np
-            >>> from pysparta.atmoslib import MERRA2DailyAtmosphere
+            >>> from spartasolar.atmoslib import MERRA2DailyAtmosphere
             
             >>> # Define a regular grid over Iberian Peninsula
             >>> times = pd.date_range("2020-06-01", periods=10, freq="D")
@@ -311,7 +311,7 @@ class MERRA2DailyAtmosphere(
             
         Examples:
             >>> import pandas as pd
-            >>> from pysparta.atmoslib.merra2_daily import MERRA2DailyAtmosphere
+            >>> from spartasolar.atmoslib.merra2_daily import MERRA2DailyAtmosphere
             
             >>> # Mid-year dates - only 2020
             >>> times = pd.date_range("2020-06-01", "2020-07-01", freq="D")

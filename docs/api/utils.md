@@ -1,1 +1,1 @@
-::: pysparta.types
+::: spartasolar.types

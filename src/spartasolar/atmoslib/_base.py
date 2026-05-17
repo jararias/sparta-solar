@@ -564,7 +564,7 @@ class BaseAtmosphere(metaclass=abc.ABCMeta):
         Examples
         --------
         >>> import pandas as pd
-        >>> from pysparta.atmoslib import MERRA2DailyAtmosphere
+        >>> from spartasolar.atmoslib import MERRA2DailyAtmosphere
         >>>
         >>> times = pd.date_range("2020-06-15", periods=24, freq="h")
         >>> atm = MERRA2DailyAtmosphere.at_sites(
@@ -591,8 +591,8 @@ class BaseAtmosphere(metaclass=abc.ABCMeta):
         
         See Also
         --------
-        pysparta.modlib.sparta : SPARTA model implementation
-        pysparta.modlib.bird : Bird clear-sky model
+        spartasolar.modlib.sparta : SPARTA model implementation
+        spartasolar.modlib.bird : Bird clear-sky model
         """
 
         model = validate_type(model, Model)

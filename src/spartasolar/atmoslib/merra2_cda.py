@@ -20,7 +20,7 @@ Examples
 Use conservative atmospheric values for solar assessment:
 
 >>> import pandas as pd
->>> from pysparta.atmoslib import MERRA2CDAAtmosphere
+>>> from spartasolar.atmoslib import MERRA2CDAAtmosphere
 >>>
 >>> times = pd.date_range("2023-01-01", "2023-12-31", freq="D")
 >>> atm = MERRA2CDAAtmosphere.at_sites(

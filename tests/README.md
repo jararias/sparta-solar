@@ -1,6 +1,6 @@
-# Testing Guide for pysparta
+# Testing Guide for SPARTA-Solar
 
-This document describes the test suite for the pysparta library, how to run tests, and how to interpret the results.
+This document describes the test suite for the SPARTA-Solar library, how to run tests, and how to interpret the results.
 
 ## Table of Contents
 
@@ -13,7 +13,7 @@ This document describes the test suite for the pysparta library, how to run test
 
 ## Overview
 
-The pysparta test suite uses **pytest** as the testing framework, with **pytest-cov** for coverage reporting and **pytest-mock** for mocking capabilities. The tests are organized into unit tests and integration tests to ensure code quality and correctness.
+The SPARTA-Solar test suite uses **pytest** as the testing framework, with **pytest-cov** for coverage reporting and **pytest-mock** for mocking capabilities. The tests are organized into unit tests and integration tests to ensure code quality and correctness.
 
 ### Test Coverage
 
@@ -72,7 +72,7 @@ pip install -e ".[dev]"
 uv run pytest -v
 
 # Run all tests with coverage
-uv run pytest --cov=pysparta --cov-report=term-missing
+uv run pytest --cov=spartasolar --cov-report=term-missing
 ```
 
 ### Run Specific Test Files
@@ -142,7 +142,7 @@ uv run pytest -vv
 
 ```python
 import pytest
-from pysparta.validation import ValidaRange
+from spartasolar.validation import ValidaRange
 
 
 class TestValidaRange:
@@ -165,7 +165,7 @@ class TestValidaRange:
 ```python
 def test_sparta_with_fixture(sparta_input_params):
     """Test using the sparta_input_params fixture."""
-    from pysparta.modlib.sparta import SPARTA
+    from spartasolar.modlib.sparta import SPARTA
     
     result = SPARTA(**sparta_input_params)
     assert result['dni'] > 0
@@ -176,7 +176,7 @@ def test_sparta_with_fixture(sparta_input_params):
 ```python
 from unittest.mock import patch
 
-@patch('pysparta.atmoslib.merra2_daily.xr.open_mfdataset')
+@patch('spartasolar.atmoslib.merra2_daily.xr.open_mfdataset')
 def test_load_dataset(mock_open_mf, sample_atmosphere_data):
     """Test dataset loading with mocked xarray."""
     mock_open_mf.return_value = sample_atmosphere_data
@@ -190,7 +190,7 @@ def test_load_dataset(mock_open_mf, sample_atmosphere_data):
 ### Viewing Coverage in Terminal
 
 ```bash
-uv run pytest --cov=pysparta --cov-report=term-missing
+uv run pytest --cov=spartasolar --cov-report=term-missing
 ```
 
 This shows:
@@ -200,7 +200,7 @@ This shows:
 ### Generating HTML Coverage Report
 
 ```bash
-uv run pytest --cov=pysparta --cov-report=html
+uv run pytest --cov=spartasolar --cov-report=html
 ```
 
 Open `htmlcov/index.html` in your browser to view detailed coverage reports with highlighted source code.
@@ -211,7 +211,7 @@ Coverage settings are configured in `pyproject.toml`:
 
 ```toml
 [tool.coverage.run]
-source = ["src/pysparta"]
+source = ["src/spartasolar"]
 omit = [
     "*/tests/*",
     "*/__pycache__/*",
@@ -276,7 +276,7 @@ jobs:
           pip install uv
           uv sync --dev
       - name: Run tests
-        run: uv run pytest --cov=pysparta
+        run: uv run pytest --cov=spartasolar
 ```
 
 ## Troubleshooting
@@ -313,7 +313,7 @@ When mocking, use the full import path where the object is used, not where it's 
 ```python
 # If merra2_daily.py imports: from ..config import get_option
 # Mock it where it's used:
-@patch('pysparta.atmoslib.merra2_daily.get_option')
+@patch('spartasolar.atmoslib.merra2_daily.get_option')
 ```
 
 ## Best Practices

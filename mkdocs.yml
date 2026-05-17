@@ -1,4 +1,4 @@
-site_name: Pysparta Documentation
+site_name: SPARTA Solar Documentation
 theme:
   name: material  # El mejor tema para documentación técnica
   features:

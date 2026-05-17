@@ -1,10 +1,10 @@
-# Pysparta ☀️
+# SPARTA-Solar ☀️
 
-**pysparta** is a high-performance Python library designed for advanced clear-sky solar radiation modeling. It provides a seamless bridge between complex atmospheric datasets (like MERRA-2 and CAMS) and state-of-the-art radiative transfer parameterizations.
+**sparta-solar** is a high-performance Python library designed for advanced clear-sky solar radiation modeling. It provides a seamless bridge between complex atmospheric datasets (like MERRA-2 and CAMS) and state-of-the-art radiative transfer parameterizations.
 
-## Why Pysparta?
+## Why SPARTA-Solar?
 
-Researchers and engineers often spend 80% of their time retrieving, cleaning, and interpolating atmospheric data before they can run a single simulation. **Pysparta flips this ratio.**
+Researchers and engineers often spend 80% of their time retrieving, cleaning, and interpolating atmospheric data before they can run a single simulation. **SPARTA-Solar flips this ratio.**
 
 ### Key Pillars:
 *   **Integrated Data Pipeline**: Automatically fetches and caches atmospheric parameters (AOD, water vapor, ozone) from SoDA-Pro and MERRA-2.
@@ -14,13 +14,13 @@ Researchers and engineers often spend 80% of their time retrieving, cleaning, an
 
 ## At a Glance
 
-Whether you need to evaluate clear-sky solar irradiance at a single location or generate a continental irradiance map, Pysparta scales with your needs:
+Whether you need to evaluate clear-sky solar irradiance at a single location or generate a continental irradiance map, SPARTA-Solar scales with your needs:
 
 ```python
-import pysparta
+import spartasolar
 
 # From coordinates to irradiance in one step
-results = pysparta.sites(
+results = spartasolar.sites(
     times_utc=pd.date_range("2023-06-21", periods=24, freq="h"),
     latitude=40.4, longitude=-3.7,
     atmos="merra2_lta"
@@ -29,11 +29,11 @@ results = pysparta.sites(
 
 ---
 !!! quote "Scientific Heritage"
-    "pysparta aims to make high-fidelity radiative transfer modeling accessible, fast, and reproducible for the entire solar energy community."
+    "SPARTA-Solar aims to make high-fidelity radiative transfer modeling accessible, fast, and reproducible for the entire solar energy community."
 
 ## How it works
 
-Pysparta handles the heavy lifting of data synchronization and physical modeling:
+SPARTA-Solar handles the heavy lifting of data synchronization and physical modeling:
 
 ```mermaid
 graph TD
@@ -62,5 +62,5 @@ graph TD
 
 !!! tip
 Don't forget to set your email before starting:
-`pysparta.set_option("soda_user_email", "your@email.com")`
+`spartasolar.set_option("soda_user_email", "your@email.com")`
 

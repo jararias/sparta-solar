@@ -1,4 +1,4 @@
-"""Unit tests for pysparta.modlib.sparta module.
+"""Unit tests for spartasolar.modlib.sparta module.
 
 Tests cover:
 - SPARTA model basic functionality
@@ -11,7 +11,7 @@ Tests cover:
 import numpy as np
 import pytest
 
-from pysparta.modlib.sparta import SPARTA
+from spartasolar.modlib.sparta import SPARTA
 
 
 class TestSPARTABasics:

@@ -20,7 +20,7 @@ Examples
 Retrieve long-term monthly averages for specific sites:
 
 >>> import pandas as pd
->>> from pysparta.atmoslib import MERRA2LTAAtmosphere
+>>> from spartasolar.atmoslib import MERRA2LTAAtmosphere
 >>>
 >>> # Generate times covering multiple years
 >>> times = pd.date_range("2020-01-15", "2021-12-15", freq="MS") + pd.Timedelta(14.5, "d")
@@ -84,7 +84,7 @@ def get_database_path():
     Path
         Directory containing merra2_lta_data files
     """
-    return Path(importlib.resources.files("pysparta.atmoslib")) / "merra2_lta_data"
+    return Path(importlib.resources.files("spartasolar.atmoslib")) / "merra2_lta_data"
 
 
 class MERRA2LTAAtmosphere(

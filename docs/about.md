@@ -1,6 +1,6 @@
 # About the Models 📚
 
-Pysparta includes two primary broadband clear-sky models. While both provide high-quality solar irradiance estimates, they differ in their physical complexity and spectral resolution.
+sparta-solar includes two primary broadband clear-sky models. While both provide high-quality solar irradiance estimates, they differ in their physical complexity and spectral resolution.
 
 ## SPARTA Model
 **Solar Parameterization of the Radiative Transfer of the Atmosphere**

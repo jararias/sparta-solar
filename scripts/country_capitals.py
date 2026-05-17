@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 import pylab as pl
 
-import pysparta as sparta
+import spartasolar as sparta
 
 
 def load_capitals():

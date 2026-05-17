@@ -300,7 +300,7 @@ type Latitude = Annotated[float, ValidaRange(gt=-90, lt=90)]
 Validates latitude values in decimal degrees. Range: -90° < lat < 90° (exclusive).
 
 Examples:
-    >>> from pysparta.validation import validate_type, Latitude
+    >>> from spartasolar.validation import validate_type, Latitude
     >>> validate_type(40.4168, Latitude)  # Madrid
     40.4168
     >>> validate_type(-33.8688, Latitude)  # Sydney
@@ -313,7 +313,7 @@ type Longitude = Annotated[float, ValidaRange(ge=-180, lt=180)]
 Validates longitude values in decimal degrees. Range: -180° ≤ lon < 180°.
 
 Examples:
-    >>> from pysparta.validation import validate_type, Longitude
+    >>> from spartasolar.validation import validate_type, Longitude
     >>> validate_type(-3.7038, Longitude)  # Madrid
     -3.7038
     >>> validate_type(151.2093, Longitude)  # Sydney
@@ -327,7 +327,7 @@ Validates elevation in meters above sea level. Range: -450m < elev < 8900m.
 Covers from Dead Sea (-430m) to Mt. Everest (8849m).
 
 Examples:
-    >>> from pysparta.validation import validate_type, Elevation
+    >>> from spartasolar.validation import validate_type, Elevation
     >>> validate_type(667, Elevation)  # Madrid
     667.0
     >>> validate_type(0, Elevation)  # Sea level
@@ -345,7 +345,7 @@ Allowed values (ISO 8601 duration format):
     - `P01M`: 1 month (monthly)
 
 Examples:
-    >>> from pysparta.validation import validate_type, SodaTimeStep
+    >>> from spartasolar.validation import validate_type, SodaTimeStep
     >>> validate_type("PT01H", SodaTimeStep)
     'PT01H'
 """
@@ -358,7 +358,7 @@ Allowed values:
     - `cams_radiation`: CAMS all-sky radiation service
 
 Examples:
-    >>> from pysparta.validation import validate_type, SodaStream
+    >>> from spartasolar.validation import validate_type, SodaStream
     >>> validate_type("mcclear", SodaStream)
     'mcclear'
 """
@@ -374,7 +374,7 @@ Note:
     Validation is case-insensitive. Input will be converted to uppercase.
 
 Examples:
-    >>> from pysparta.validation import validate_type, Model
+    >>> from spartasolar.validation import validate_type, Model
     >>> validate_type("sparta", Model)
     'SPARTA'
     >>> validate_type("BIRD", Model)

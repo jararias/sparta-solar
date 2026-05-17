@@ -1,4 +1,4 @@
-# pysparta
+# sparta-solar
 
 **Solar PArameterization of the Radiative Transfer of the Atmosphere**
 
@@ -47,14 +47,14 @@ A high-performance Python library for computing clear-sky solar irradiance using
 ### From GitHub (recommended)
 
 ```bash
-pip install git+https://github.com/jararias/pysparta@main
+pip install git+https://github.com/jararias/sparta-solar@main
 ```
 
 ### Development Installation
 
 ```bash
-git clone https://github.com/jararias/pysparta.git
-cd pysparta
+git clone https://github.com/jararias/sparta-solar.git
+cd sparta-solar
 pip install -e ".[dev]"
 ```
 
@@ -66,7 +66,7 @@ pip install -e ".[dev]"
 
 ```python
 import pandas as pd
-from pysparta.atmosphere import merra2_daily
+from spartasolar.atmosphere import merra2_daily
 
 # Define time and location
 times = pd.date_range("2020-06-15", periods=24, freq="h")
@@ -93,7 +93,7 @@ print(result.dif.values)  # Diffuse Horizontal Irradiance
 ### Direct SPARTA Model Usage
 
 ```python
-from pysparta.modlib import SPARTA
+from spartasolar.modlib import SPARTA
 
 # Compute with explicit parameters
 result = SPARTA(
@@ -140,11 +140,11 @@ result.ghi.isel(time=0).plot()
 
 ### 1. Atmospheric Data Layer
 
-pysparta separates atmospheric data retrieval from radiation calculations:
+sparta-solar separates atmospheric data retrieval from radiation calculations:
 
 ```python
 # Step 1: Get atmospheric constituents (aerosols, water vapor, ozone, etc.)
-from pysparta.atmosphere import merra2_daily
+from spartasolar.atmosphere import merra2_daily
 
 atm = merra2_daily.at_sites(
     times=times,
@@ -207,7 +207,7 @@ result.to_netcdf("output.nc")
 ### Daily NASA MERRA-2 reanalysis data (1980-present):
 
 ```python
-from pysparta.atmosphere import merra2_daily
+from spartasolar.atmosphere import merra2_daily
 
 atm = merra2_daily.at_sites(
     times=pd.date_range("2020-01-01", "2020-12-31", freq="h"),
@@ -223,7 +223,7 @@ atm = merra2_daily.at_sites(
 ### Long-term monthly averages (1999-2018 climatology):
 
 ```python
-from pysparta.atmosphere import merra2_lta
+from spartasolar.atmosphere import merra2_lta
 
 atm = merra2_lta.at_sites(
     times=pd.date_range("2020-01-01", "2020-12-31", freq="h"),
@@ -235,8 +235,8 @@ atm = merra2_lta.at_sites(
 ### Copernicus Radiation Service via SODA API (requires registration):
 
 ```python
-from pysparta import config
-from pysparta.atmosphere import crs_soda
+from spartasolar import config
+from spartasolar.atmosphere import crs_soda
 
 # Configure user email (one-time setup)
 config.set_option('crs_soda.user_email', 'your.email@example.com')
@@ -253,8 +253,8 @@ atm = crs_soda.at_site(
 ### Hourly MERRA-2 via Google Earth Engine (requires GEE account):
 
 ```python
-from pysparta import config
-from pysparta.atmosphere import merra2_gee
+from spartasolar import config
+from spartasolar.atmosphere import merra2_gee
 
 # Configure GEE project
 config.set_option('merra2_gee.project', 'your-gee-project-id')
@@ -272,7 +272,7 @@ atm = merra2_gee.at_site(
 
 ```python
 import numpy as np
-from pysparta.atmosphere import custom
+from spartasolar.atmosphere import custom
 
 times = pd.date_range("2020-06-01", periods=24, freq="h")
 constituents = {
@@ -310,7 +310,7 @@ diff = result_sparta.ghi - result_bird.ghi
 ### Circumsolar Irradiance
 
 ```python
-from pysparta.modlib import SPARTA
+from spartasolar.modlib import SPARTA
 
 # Enable circumsolar correction (default)
 result = SPARTA(
@@ -328,12 +328,12 @@ print(f"CSI accounts for {csi_fraction:.2%} of DNI")
 
 ## ⚙️ Configuration
 
-pysparta uses TOML-based configuration stored in `~/.config/pysparta/config.toml` (Linux) or equivalent on other platforms.
+sparta-solar uses TOML-based configuration stored in `~/.config/sparta-solar/config.toml` (Linux) or equivalent on other platforms.
 
 ### View Configuration
 
 ```python
-from pysparta import config
+from spartasolar import config
 
 config.show_config()
 ```
@@ -341,7 +341,7 @@ config.show_config()
 ### Set Options
 
 ```python
-from pysparta import config
+from spartasolar import config
 
 # Set custom data directory
 config.set_option('merra2_daily.data_dir', '/data/merra2')
@@ -370,7 +370,7 @@ config.reset_config_file()
 
 ## ✅ Testing
 
-pysparta includes a comprehensive test suite with 103 unit tests:
+sparta-solar includes a comprehensive test suite with 103 unit tests:
 
 ### Run All Tests
 
@@ -392,7 +392,7 @@ pytest tests/unit/test_merra2_daily.py    # MERRA2 atmosphere tests
 ### Run with Coverage
 
 ```bash
-pytest --cov=pysparta tests/
+pytest --cov=spartasolar tests/
 ```
 
 ### Test Markers
@@ -414,17 +414,17 @@ All modules include comprehensive NumPy-style docstrings with examples:
 ### Access Help
 
 ```python
-from pysparta.modlib import SPARTA
+from spartasolar.modlib import SPARTA
 help(SPARTA)
 
-from pysparta.atmoslib import MERRA2DailyAtmosphere
+from spartasolar.atmoslib import MERRA2DailyAtmosphere
 help(MERRA2DailyAtmosphere.at_sites)
 ```
 
 ### Module Organization
 
 ```
-pysparta/
+spartasolar/
 ├── modlib/              # Clear-sky radiation models
 │   ├── sparta.py        # SPARTA model
 │   └── bird.py          # Bird model
@@ -445,7 +445,7 @@ pysparta/
 
 ## 📖 Citation
 
-If you use pysparta in your research, please cite:
+If you use sparta-solar in your research, please cite:
 
 **Ruiz-Arias, J. A.** (2023). SPARTA: Solar parameterization for the radiative transfer of the cloudless atmosphere. *Renewable and Sustainable Energy Reviews*, 188, 113833.
 https://doi.org/10.1016/j.rser.2023.113833

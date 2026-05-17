@@ -1,4 +1,4 @@
-"""Unit tests for pysparta.validation module.
+"""Unit tests for spartasolar.validation module.
 
 Tests cover:
 - ValidaRegex: Pattern validation and parsing
@@ -11,7 +11,7 @@ Tests cover:
 import pytest
 from typing import Annotated
 
-from pysparta.validation import (
+from spartasolar.validation import (
     ValidaRegex,
     ValidaChoices,
     ValidaRange,

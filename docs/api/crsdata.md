@@ -1,1 +1,1 @@
-::: pysparta.atmoslib.crsdata
+::: spartasolar.atmoslib.crsdata

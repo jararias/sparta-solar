@@ -3,7 +3,7 @@
 This module allows users to provide their own atmospheric constituent data
 for solar radiation modeling with SPARTA. This is useful when you have
 atmospheric measurements or model outputs that are not part of the standard
-databases provided by pysparta.
+databases provided by sparta-solar.
 
 Examples
 --------
@@ -11,7 +11,7 @@ Create custom atmospheric data for specific sites:
 
 >>> import numpy as np
 >>> import pandas as pd
->>> from pysparta.atmoslib import CustomAtmosphere
+>>> from spartasolar.atmoslib import CustomAtmosphere
 >>>
 >>> # Define time series and locations
 >>> times = pd.date_range("2020-06-01", periods=24, freq="h")

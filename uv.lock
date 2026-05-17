@@ -350,14 +350,14 @@ wheels = [
 
 [[package]]
 name = "click"
-version = "8.3.3"
+version = "8.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/bb/63/f9e1ea081ce35720d8b92acde70daaedace594dc93b693c869e0d5910718/click-8.3.3.tar.gz", hash = "sha256:398329ad4837b2ff7cbe1dd166a4c0f8900c3ca3a218de04466f38f6497f18a2", size = 328061, upload-time = "2026-04-22T15:11:27.506Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/23/e4/796662cd90cf80e3a363c99db2b88e0e394b988a575f60a17e16440cd011/click-8.4.0.tar.gz", hash = "sha256:638f1338fe1235c8f4e008e4a8a254fb5c5fbdcbb40ece3c9142ebb78e792973", size = 350843, upload-time = "2026-05-17T00:47:58.425Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ae/44/c1221527f6a71a01ec6fbad7fa78f1d50dfa02217385cf0fa3eec7087d59/click-8.3.3-py3-none-any.whl", hash = "sha256:a2bf429bb3033c89fa4936ffb35d5cb471e3719e1f3c8a7c3fff0b8314305613", size = 110502, upload-time = "2026-04-22T15:11:25.044Z" },
+    { url = "https://files.pythonhosted.org/packages/ee/ae/8e92f8058baf87f6c7d86ee7e457668690195cc77efedb8d3797a06e3940/click-8.4.0-py3-none-any.whl", hash = "sha256:40c50b7c6c6adac2823d411041ec84f3f103f1b280d5e9ce0d7f998995832f81", size = 116147, upload-time = "2026-05-17T00:47:56.842Z" },
 ]
 
 [[package]]
@@ -630,11 +630,11 @@ complete = [
 
 [[package]]
 name = "decorator"
-version = "5.2.1"
+version = "5.3.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/43/fa/6d96a0978d19e17b68d634497769987b16c8f4cd0a7a05048bec693caa6b/decorator-5.2.1.tar.gz", hash = "sha256:65f266143752f734b0a7cc83c46f4618af75b8c5911b00ccb61d0ac9b6da0360", size = 56711, upload-time = "2025-02-24T04:41:34.073Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5c/50/a39dd7ab407e93978dfa07d109b7d633e37958c89f30cbcec061b77b3ebc/decorator-5.3.0.tar.gz", hash = "sha256:95fda3122972c847cf0ff7e0ce2829bf25136f2526b627b3da85b60ca5f485c0", size = 58431, upload-time = "2026-05-17T06:59:57.258Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4e/8c/f3147f5c4b73e7550fe5f9352eaa956ae838d5c51eb58e7a25b9f3e2643b/decorator-5.2.1-py3-none-any.whl", hash = "sha256:d316bb415a2d9e2d2b3abcc4084c6502fc09240e292cd76a76afc106a1c8e04a", size = 9190, upload-time = "2025-02-24T04:41:32.565Z" },
+    { url = "https://files.pythonhosted.org/packages/d5/6f/f8d0bba4dc2a69817d74f640d504650241ebf2f9f7263426f1b953b344d4/decorator-5.3.0-py3-none-any.whl", hash = "sha256:f8c2d71ede92f073144ddd7f3e9fbbc3bd0f2f29522c9d75ee648d66553834f4", size = 11104, upload-time = "2026-05-17T06:59:54.676Z" },
 ]
 
 [[package]]
@@ -1668,11 +1668,11 @@ wheels = [
 
 [[package]]
 name = "narwhals"
-version = "2.21.0"
+version = "2.21.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/2d/0e/3ad61eb87088cc4932e0d851531fa82f845a6230b68b091a0e298cc7e537/narwhals-2.21.0.tar.gz", hash = "sha256:7c6e7f50528e62b7a967dd864d7e117d2955d38d4f730653ce46a9861358e2dc", size = 633083, upload-time = "2026-05-08T12:29:02.587Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/cf/a0/6198c56d42ef2f3c6ed0c42ba30dbcefdc86a91262d7d449010770ae085b/narwhals-2.21.2.tar.gz", hash = "sha256:5c5b2d0b47aef7c73ea412cfcbcd467f2f2d5be73e3c2ab19d78f4a97718790a", size = 632176, upload-time = "2026-05-16T08:49:08.314Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c7/e1/68c2256b69a314eba133673377ba9118c356f6342a0c02b61de449cf2bf2/narwhals-2.21.0-py3-none-any.whl", hash = "sha256:1e6617d0fca68ae1fda29e5397c4eaacd3ffc9fffe6bcd6ded0c690475e853be", size = 451943, upload-time = "2026-05-08T12:29:01.058Z" },
+    { url = "https://files.pythonhosted.org/packages/1d/77/928ea2e70641ca177a11140062cc5840d421795f2e82749d408d0cce900a/narwhals-2.21.2-py3-none-any.whl", hash = "sha256:7bb57c3700486039215455b9bf2d64261915cc0fd845cc30272d631df696b251", size = 451201, upload-time = "2026-05-16T08:49:05.536Z" },
 ]
 
 [[package]]
@@ -2513,99 +2513,11 @@ wheels = [
 
 [[package]]
 name = "pyshp"
-version = "3.0.3"
+version = "3.0.4"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/8c/20/8b07bae73aaa0c3f5a2683ba6e23b46e977e2d33a88126d56bbcc2d135cd/pyshp-3.0.3.tar.gz", hash = "sha256:bf4678b13dd53578ed87669676a2fffeccbcded1ec8ff9cafb36d1b660f4b305", size = 2192568, upload-time = "2025-11-28T17:47:31.616Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3c/70/dcff3c4d4c360918a2d63ac30e47b7017fff792ef168a4e045cbb6f6d001/pyshp-3.0.4.tar.gz", hash = "sha256:a4d56228dea75428e1ccd9991eb2c32cacf7b52070f36d04c5c39dc253767ae3", size = 2192836, upload-time = "2026-05-17T15:13:13.721Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/82/06/cad54e8ce758bd836ee5411691cbd49efeb9cc611b374670fce299519334/pyshp-3.0.3-py3-none-any.whl", hash = "sha256:28c8fac8c0c25bb0fecbbfd10ead7f319c2ff2f3b0b44a94f22bd2c93510ad42", size = 58465, upload-time = "2025-11-28T17:47:30.328Z" },
-]
-
-[[package]]
-name = "pysparta"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "blosc2" },
-    { name = "dask", extra = ["complete"] },
-    { name = "huggingface-hub" },
-    { name = "loguru" },
-    { name = "netcdf4" },
-    { name = "numpy" },
-    { name = "pandas" },
-    { name = "platformdirs" },
-    { name = "pyarrow" },
-    { name = "scipy" },
-    { name = "sunwhere" },
-    { name = "tomlkit" },
-    { name = "xarray" },
-    { name = "zarr" },
-]
-
-[package.optional-dependencies]
-docs = [
-    { name = "mkdocs" },
-    { name = "mkdocs-material" },
-    { name = "mkdocstrings", extra = ["python"] },
-    { name = "pymdown-extensions" },
-    { name = "zensical" },
-]
-merra2-gee = [
-    { name = "earthengine-api" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "geoviews" },
-    { name = "hvplot" },
-    { name = "ipython" },
-    { name = "matplotlib" },
-    { name = "panel" },
-    { name = "pyqt6" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "pytest-mock" },
-    { name = "python-dotenv" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "blosc2", specifier = ">=4.1.2" },
-    { name = "dask", extras = ["complete"], specifier = ">=2026.3.0" },
-    { name = "earthengine-api", marker = "extra == 'merra2-gee'", specifier = ">=1.7.26" },
-    { name = "huggingface-hub", specifier = ">=1.15.0" },
-    { name = "loguru", specifier = ">=0.7.3" },
-    { name = "mkdocs", marker = "extra == 'docs'", specifier = ">=1.6.1" },
-    { name = "mkdocs-material", marker = "extra == 'docs'", specifier = ">=9.7.6" },
-    { name = "mkdocstrings", extras = ["python"], marker = "extra == 'docs'", specifier = ">=1.0.4" },
-    { name = "netcdf4", specifier = ">=1.7.4" },
-    { name = "numpy", specifier = ">=2.4.4" },
-    { name = "pandas", specifier = ">=3.0.2" },
-    { name = "platformdirs", specifier = ">=4.9.6" },
-    { name = "pyarrow", specifier = ">=24.0.0" },
-    { name = "pymdown-extensions", marker = "extra == 'docs'", specifier = ">=10.21.2" },
-    { name = "scipy", specifier = ">=1.17.1" },
-    { name = "sunwhere", specifier = ">=1.4.0" },
-    { name = "tomlkit", specifier = ">=0.15.0" },
-    { name = "xarray", specifier = ">=2026.4.0" },
-    { name = "zarr", specifier = ">=3.2.1" },
-    { name = "zensical", marker = "extra == 'docs'", specifier = ">=0.0.41" },
-]
-provides-extras = ["docs", "merra2-gee"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "geoviews", specifier = ">=1.15.1" },
-    { name = "hvplot", specifier = ">=0.12.2" },
-    { name = "ipython", specifier = ">=9.13.0" },
-    { name = "matplotlib", specifier = ">=3.10.9" },
-    { name = "panel", specifier = ">=1.8.10" },
-    { name = "pyqt6", specifier = ">=6.11.0" },
-    { name = "pytest", specifier = ">=8.0.0" },
-    { name = "pytest-cov", specifier = ">=6.0.0" },
-    { name = "pytest-mock", specifier = ">=3.12.0" },
-    { name = "python-dotenv", specifier = ">=1.2.2" },
-    { name = "ruff", specifier = ">=0.15.12" },
+    { url = "https://files.pythonhosted.org/packages/36/6d/523f1d5272f23c35bfdaaed7d176e01657123315af06437103c0a63ac344/pyshp-3.0.4-py3-none-any.whl", hash = "sha256:250afb5951e8f34d13559aab2be612e5721eb2f6d0b3627eaa7ff01c50f7f2bf", size = 58581, upload-time = "2026-05-17T15:13:12.54Z" },
 ]
 
 [[package]]
@@ -2931,6 +2843,94 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/e8/c4/ba2f8066cceb6f23394729afe52f3bf7adec04bf9ed2c820b39e19299111/sortedcontainers-2.4.0.tar.gz", hash = "sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88", size = 30594, upload-time = "2021-05-16T22:03:42.897Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/32/46/9cb0e58b2deb7f82b84065f37f3bffeb12413f947f9388e4cac22c4621ce/sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0", size = 29575, upload-time = "2021-05-16T22:03:41.177Z" },
+]
+
+[[package]]
+name = "sparta-solar"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "blosc2" },
+    { name = "dask", extra = ["complete"] },
+    { name = "huggingface-hub" },
+    { name = "loguru" },
+    { name = "netcdf4" },
+    { name = "numpy" },
+    { name = "pandas" },
+    { name = "platformdirs" },
+    { name = "pyarrow" },
+    { name = "scipy" },
+    { name = "sunwhere" },
+    { name = "tomlkit" },
+    { name = "xarray" },
+    { name = "zarr" },
+]
+
+[package.optional-dependencies]
+docs = [
+    { name = "mkdocs" },
+    { name = "mkdocs-material" },
+    { name = "mkdocstrings", extra = ["python"] },
+    { name = "pymdown-extensions" },
+    { name = "zensical" },
+]
+merra2-gee = [
+    { name = "earthengine-api" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "geoviews" },
+    { name = "hvplot" },
+    { name = "ipython" },
+    { name = "matplotlib" },
+    { name = "panel" },
+    { name = "pyqt6" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-mock" },
+    { name = "python-dotenv" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "blosc2", specifier = ">=4.1.2" },
+    { name = "dask", extras = ["complete"], specifier = ">=2026.3.0" },
+    { name = "earthengine-api", marker = "extra == 'merra2-gee'", specifier = ">=1.7.26" },
+    { name = "huggingface-hub", specifier = ">=1.15.0" },
+    { name = "loguru", specifier = ">=0.7.3" },
+    { name = "mkdocs", marker = "extra == 'docs'", specifier = ">=1.6.1" },
+    { name = "mkdocs-material", marker = "extra == 'docs'", specifier = ">=9.7.6" },
+    { name = "mkdocstrings", extras = ["python"], marker = "extra == 'docs'", specifier = ">=1.0.4" },
+    { name = "netcdf4", specifier = ">=1.7.4" },
+    { name = "numpy", specifier = ">=2.4.4" },
+    { name = "pandas", specifier = ">=3.0.2" },
+    { name = "platformdirs", specifier = ">=4.9.6" },
+    { name = "pyarrow", specifier = ">=24.0.0" },
+    { name = "pymdown-extensions", marker = "extra == 'docs'", specifier = ">=10.21.2" },
+    { name = "scipy", specifier = ">=1.17.1" },
+    { name = "sunwhere", specifier = ">=1.4.0" },
+    { name = "tomlkit", specifier = ">=0.15.0" },
+    { name = "xarray", specifier = ">=2026.4.0" },
+    { name = "zarr", specifier = ">=3.2.1" },
+    { name = "zensical", marker = "extra == 'docs'", specifier = ">=0.0.41" },
+]
+provides-extras = ["docs", "merra2-gee"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "geoviews", specifier = ">=1.15.1" },
+    { name = "hvplot", specifier = ">=0.12.2" },
+    { name = "ipython", specifier = ">=9.13.0" },
+    { name = "matplotlib", specifier = ">=3.10.9" },
+    { name = "panel", specifier = ">=1.8.10" },
+    { name = "pyqt6", specifier = ">=6.11.0" },
+    { name = "pytest", specifier = ">=8.0.0" },
+    { name = "pytest-cov", specifier = ">=6.0.0" },
+    { name = "pytest-mock", specifier = ">=3.12.0" },
+    { name = "python-dotenv", specifier = ">=1.2.2" },
+    { name = "ruff", specifier = ">=0.15.12" },
 ]
 
 [[package]]

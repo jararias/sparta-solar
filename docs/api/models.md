@@ -1,1 +1,1 @@
-::: pysparta.modlib
+::: spartasolar.modlib

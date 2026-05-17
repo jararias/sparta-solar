@@ -54,19 +54,19 @@ def get_message_format(with_mp: bool = False):
 def set_logger(enable: bool = True, capture_warnings: bool = True, **kwargs):
     """Configures and activates the global logger for the library.
 
-    This is the main entry point to enable logging in `pysparta`. It removes 
+    This is the main entry point to enable logging in `spartasolar`. It removes 
     the default Loguru handler and sets up a customized one pointing to 
     `sys.stderr`.
 
     Args:
-        enable: If False, disables all logs for the 'pysparta' namespace.
+        enable: If False, disables all logs for the 'spartasolar' namespace.
         capture_warnings: If True, redirects Python's `warnings.showwarning` 
             to the logger, ensuring consistency across all alerts.
         **kwargs: Additional arguments passed directly to `logger.add()`, 
             allowing overrides of `sink`, `level`, `format`, etc.
 
     Example:
-        >>> from pysparta.logtools import set_logger
+        >>> from spartasolar.logtools import set_logger
         >>> set_logger(level="DEBUG", with_mp=True)
     """
 
@@ -79,12 +79,12 @@ def set_logger(enable: bool = True, capture_warnings: bool = True, **kwargs):
     )
     logger.remove()
     logger.add(**(default_kwargs | (kwargs or {})))
-    logger.enable("pysparta")
+    logger.enable("spartasolar")
     if capture_warnings:
         def loguru_shows_warnings(message, category, filename, lineno, *args, **kwargs):
             logger.opt(depth=2).warning(f"{category.__name__}: {message}")
         warnings.showwarning = loguru_shows_warnings
     # else:
-    #     logger.disable("pysparta")
+    #     logger.disable("spartasolar")
 
 

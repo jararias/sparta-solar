@@ -3,7 +3,7 @@ requires = ["uv-build>=0.7.19"]
 build-backend = "uv_build"
 
 [project]
-name = "pysparta"
+name = "sparta-solar"
 version = "0.1.0"
 description = "Solar PArameterization for the Radiative Transfer of the Atmosphere"
 readme = "README.md"
@@ -16,7 +16,7 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
 ]
-urls = {Homepage = "https://github.com/jararias/pysparta"}
+urls = {Homepage = "https://github.com/jararias/sparta-solar"}
 
 
 dependencies = [
@@ -69,16 +69,19 @@ dev = [
 # uv-build solo incluye archivos .py por defecto a menos que se especifique lo contrario
 exclude = ["*"] 
 
+[tool.uv.build-backend]
+module-name = "spartasolar"
+
 # Equivale a tool.setuptools.package-data
 # Aquí incluimos explícitamente los archivos de datos deseados
 include = [
-    "pysparta/atmoslib/merra2_lta_data/*.nc",
+    "spartasolar/atmoslib/merra2_lta_data/*.nc",
 ]
 
 [tool.uv-build.targets.wheel]
-# Equivale a package-dir = {"" = "."} y packages.find (namespaces = true) en setuptools
-# uv-build busca automáticamente paquetes con __init__.py o directorios de namespaces
-packages = ["pysparta"]
+# El paquete y el módulo tienen el mismo nombre
+packages = ["spartasolar"]
+package-dir = {"" = "src"}
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -96,7 +99,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["src/pysparta"]
+source = ["src/spartasolar"]
 omit = [
     "*/tests/*",
     "*/__pycache__/*",

@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-LOCAL_REPO_PATH = Path("/home/jararias/.local/share/pysparta/merra2-daily-for-huggingface")
+LOCAL_REPO_PATH = Path("/home/jararias/.local/share/spartasolar/merra2-daily-for-huggingface")
 
 def delete_Hf_yearly_chunk(year: int):
     Hf.delete_folder(

@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 import pylab as pl  # noqa: F401
 
-from pysparta import SPARTA
-from pysparta.benchmark import BIRD  # noqa: F401
+from spartasolar import SPARTA
+from spartasolar.benchmark import BIRD  # noqa: F401
 
 # TODO Inline documentation to explain the input arguments
 

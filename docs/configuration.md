@@ -1,6 +1,6 @@
 # Configuration Guide
 
-Pysparta requires minimal setup, but you must provide your **SoDA User Email** to access atmospheric data from the CAMS Radiation Service.
+sparta-solar requires minimal setup, but you must provide your **SoDA User Email** to access atmospheric data from the CAMS Radiation Service.
 
 ## Configuration Methods
 
@@ -8,25 +8,25 @@ You can manage your settings in two ways: via a persistent configuration file or
 
 ### 1. Persistent Setup (Recommended)
 
-Pysparta stores its settings in a `config.toml` file. To find out where this file should be located on your system, run:
+sparta-solar stores its settings in a `config.toml` file. To find out where this file should be located on your system, run:
 
 ```python
-import pysparta
-print(pysparta.get_config_path())
+import spartasolar
+print(spartasolar.get_config_path())
 ```
 
 #### Default Location
-- **Linux:** `~/.config/pysparta/config.toml`
-- **macOS:** `~/Library/Application Support/pysparta/config.toml`
-- **Windows:** `%APPDATA%\pysparta\config.toml`
+- **Linux:** `~/.config/spartasolar/config.toml`
+- **macOS:** `~/Library/Application Support/spartasolar/config.toml`
+- **Windows:** `%APPDATA%\spartasolar\config.toml`
 
 #### Example `config.toml`
-If the file doesn't exist, Pysparta will create a template for you. Edit it with your details:
+If the file doesn't exist, sparta-solar will create a template for you. Edit it with your details:
 
 ```toml
-# pysparta configuration file
+# sparta-solar configuration file
 soda_user_email = "your_registered_email@example.com"
-data_dir = "~/pysparta_data"
+data_dir = "~/sparta-solar-data"
 ```
 
 ---
@@ -36,13 +36,13 @@ data_dir = "~/pysparta_data"
 If you prefer to set options programmatically (e.g., in a Jupyter Notebook or a script), use `set_option`:
 
 ```python
-import pysparta
+import spartasolar
 
 # Set your credentials for the current session
-pysparta.set_option("soda_user_email", "user@example.com")
+spartasolar.set_option("soda_user_email", "user@example.com")
 
 # Change the data storage directory
-pysparta.set_option("data_dir", "/path/to/custom/storage")
+spartasolar.set_option("data_dir", "/path/to/custom/storage")
 ```
 
 !!! warning "Note"
@@ -61,8 +61,8 @@ pysparta.set_option("data_dir", "/path/to/custom/storage")
 You can check your active configuration at any time:
 
 ```python
-import pysparta
-pysparta.show_options()
+import spartasolar
+spartasolar.show_options()
 ```
 
 ---
@@ -71,14 +71,14 @@ pysparta.show_options()
 
 The following functions manage the internal state of the configuration:
 
-::: pysparta.config
+::: spartasolar.config
     options:
       show_root_heading: false
       show_source: false
 
 ## Obtaining SoDA Credentials
 
-To use Pysparta's data retrieval features, you need a free account from **SoDA-Pro**. This service provides the CAMS Radiation Service (CRS) data used for atmospheric characterization.
+To use sparta-solar's data retrieval features, you need a free account from **SoDA-Pro**. This service provides the CAMS Radiation Service (CRS) data used for atmospheric characterization.
 
 1.  **Register:** Go to the [SoDA-Pro Registration Page](https://soda-pro.com).
 2.  **Activate:** Confirm your account via the email they send you.

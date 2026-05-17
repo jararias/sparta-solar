@@ -9,25 +9,25 @@ from . import config
 from .logtools import set_logger
 
 try:
-    __version__ = importlib.metadata.version("pysparta")
+    __version__ = importlib.metadata.version("sparta-solar")
 except importlib.metadata.PackageNotFoundError:
     __version__ = "0.0.0"
 
 # De manera estándar, los logs de loguru se deberían dejar bloqueados
-# usando logger.disable("pysparta") y que sea el usuario final el que
+# usando logger.disable("spartasolar") y que sea el usuario final el que
 # decida si quiere mostrarlos o no (habilitarlos por defecto no es lo
 # recomendado).
 
 # La forma general que tendría el usuario de activarlos sería:
 
-# import pysparta
+# import spartasolar
 # from loguru import logger
-# logger.enable("pysparta")
+# logger.enable("spartasolar")
 
 # No obstante, el usuario puede elegir aplicar la configuración que yo
 # aporto en la aplicación:
 
-# import pysparta
-# pysparta.set_logger(level="INFO")
+# import spartasolar
+# spartasolar.set_logger(level="INFO")
 
-logger.disable("pysparta")
+logger.disable("spartasolar")

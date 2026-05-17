@@ -1,4 +1,4 @@
-"""Unit tests for pysparta.atmoslib.merra2_daily module.
+"""Unit tests for spartasolar.atmoslib.merra2_daily module.
 
 Tests cover:
 - MERRA2DailyAtmosphere.at_sites() method
@@ -15,7 +15,7 @@ import xarray as xr
 from pathlib import Path
 from unittest.mock import patch, MagicMock, mock_open
 
-from pysparta.atmoslib.merra2_daily import (
+from spartasolar.atmoslib.merra2_daily import (
     MERRA2DailyAtmosphere,
     get_database_path,
 )
@@ -24,8 +24,8 @@ from pysparta.atmoslib.merra2_daily import (
 class TestGetDatabasePath:
     """Test suite for database path configuration."""
 
-    @patch('pysparta.atmoslib.merra2_daily.get_option')
-    @patch('pysparta.atmoslib.merra2_daily.platformdirs.user_data_path')
+    @patch('spartasolar.atmoslib.merra2_daily.get_option')
+    @patch('spartasolar.atmoslib.merra2_daily.platformdirs.user_data_path')
     def test_get_database_path_with_config(self, mock_user_data_path, mock_get_option, tmp_path):
         """Test that configured path is used when available."""
         config_path = tmp_path / "custom_merra2"
@@ -37,12 +37,12 @@ class TestGetDatabasePath:
         assert result == config_path
         mock_get_option.assert_called_once_with("merra2_daily.data_dir")
 
-    @patch('pysparta.atmoslib.merra2_daily.get_option')
-    @patch('pysparta.atmoslib.merra2_daily.platformdirs.user_data_path')
+    @patch('spartasolar.atmoslib.merra2_daily.get_option')
+    @patch('spartasolar.atmoslib.merra2_daily.platformdirs.user_data_path')
     def test_get_database_path_creates_directory(self, mock_user_data_path, mock_get_option, tmp_path):
         """Test that directory is created if it doesn't exist."""
         mock_get_option.return_value = None
-        default_path = tmp_path / "pysparta" / "merra2-daily"
+        default_path = tmp_path / "spartasolar" / "merra2-daily"
         mock_user_data_path.return_value = default_path
         
         result = get_database_path()
@@ -251,7 +251,7 @@ class TestLoadDataset:
     """Test suite for _load_dataset class method."""
 
     @patch.object(MERRA2DailyAtmosphere, '_ensure_all_paths_are_local')
-    @patch('pysparta.atmoslib.merra2_daily.xr.open_mfdataset')
+    @patch('spartasolar.atmoslib.merra2_daily.xr.open_mfdataset')
     def test_load_dataset_single_year(self, mock_open_mf, mock_ensure_paths, sample_atmosphere_data, tmp_path):
         """Test loading dataset for a single year."""
         mock_open_mf.return_value = sample_atmosphere_data
@@ -266,7 +266,7 @@ class TestLoadDataset:
         mock_open_mf.assert_called_once()
 
     @patch.object(MERRA2DailyAtmosphere, '_ensure_all_paths_are_local')
-    @patch('pysparta.atmoslib.merra2_daily.xr.open_mfdataset')
+    @patch('spartasolar.atmoslib.merra2_daily.xr.open_mfdataset')
     def test_load_dataset_multiple_years(self, mock_open_mf, mock_ensure_paths, sample_atmosphere_data, tmp_path):
         """Test loading dataset spanning multiple years."""
         mock_open_mf.return_value = sample_atmosphere_data
@@ -286,7 +286,7 @@ class TestLoadDataset:
         assert 2021 in years_in_paths
 
     @patch.object(MERRA2DailyAtmosphere, '_ensure_all_paths_are_local')
-    @patch('pysparta.atmoslib.merra2_daily.xr.open_mfdataset')
+    @patch('spartasolar.atmoslib.merra2_daily.xr.open_mfdataset')
     def test_load_dataset_calls_open_mfdataset_correctly(self, mock_open_mf, mock_ensure_paths, sample_atmosphere_data, tmp_path):
         """Test that xr.open_mfdataset is called with correct parameters."""
         mock_open_mf.return_value = sample_atmosphere_data

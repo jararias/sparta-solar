@@ -1,4 +1,4 @@
-r"""Configuration Management for Pysparta.
+r"""Configuration Management for SPARTA-Solar.
 
 This module handles the persistent storage and retrieval of user settings using 
 a TOML configuration file located in the standard user configuration directory.
@@ -17,17 +17,17 @@ Configuration Flow:
     5. Persistent changes require manual editing of config.toml
 
 Configuration File Location:
-    - Linux: ~/.config/pysparta/config.toml
-    - macOS: ~/Library/Application Support/pysparta/config.toml
-    - Windows: C:\\Users\\<user>\\AppData\\Local\\pysparta\\config.toml
+    - Linux: ~/.config/spartasolar/config.toml
+    - macOS: ~/Library/Application Support/spartasolar/config.toml
+    - Windows: C:\\Users\\<user>\\AppData\\Local\\spartasolar\\config.toml
 
 Examples:
-    >>> from pysparta.config import get_config_path, get_option, set_option
+    >>> from spartasolar.config import get_config_path, get_option, set_option
     
     >>> # Get configuration file path
     >>> config_path = get_config_path()
     >>> print(config_path)
-    PosixPath('/home/user/.config/pysparta/config.toml')
+    PosixPath('/home/user/.config/spartasolar/config.toml')
     
     >>> # Retrieve an option
     >>> email = get_option('crs_soda.user_email')
@@ -97,7 +97,7 @@ def get_config_path() -> Path:
         Path: The absolute path to `config.toml` within the standard 
             system-specific user configuration directory.
     """
-    path = platformdirs.user_config_path(appname="pysparta", ensure_exists=True)
+    path = platformdirs.user_config_path(appname="spartasolar", ensure_exists=True)
     return path / "config.toml"
 
 def _init_config_file():
@@ -158,7 +158,7 @@ def get_option(name: str, default: Any = None) -> Any:
             automatically converted to `Path` objects.
             
     Examples:
-        >>> from pysparta.config import get_option
+        >>> from spartasolar.config import get_option
         
         >>> # Get solar position algorithm
         >>> algorithm = get_option('sunwhere.algorithm')
@@ -204,7 +204,7 @@ def set_option(name: str, value: Any) -> None:
         the Python session to revert to file values.
         
     Examples:
-        >>> from pysparta.config import set_option, get_option
+        >>> from spartasolar.config import set_option, get_option
         
         >>> # Change solar position algorithm
         >>> set_option('sunwhere.algorithm', 'spa')

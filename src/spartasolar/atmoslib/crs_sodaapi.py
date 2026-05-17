@@ -20,8 +20,8 @@ Examples
 Retrieve atmospheric data for a specific site:
 
 >>> import pandas as pd
->>> from pysparta.atmoslib import CRSSODAAtmosphere
->>> from pysparta import config
+>>> from spartasolar.atmoslib import CRSSODAAtmosphere
+>>> from spartasolar import config
 >>>
 >>> # Configure your SODA email (required for API access)
 >>> config.set_option('crs_soda.user_email', 'your.email@example.com')
@@ -40,7 +40,7 @@ Notes
 Requires registration at https://www.soda-pro.com/ to obtain a user email
 for API access. Configure it using:
 
->>> from pysparta import config
+>>> from spartasolar import config
 >>> config.set_option('crs_soda.user_email', 'your.email@example.com')
 
 See Also
@@ -91,18 +91,18 @@ def get_database_path() -> Path:
         
     Examples
     --------
-    >>> from pysparta import config
-    >>> from pysparta.atmoslib.crs_sodaapi import get_database_path
+    >>> from spartasolar import config
+    >>> from spartasolar.atmoslib.crs_sodaapi import get_database_path
     >>>
     >>> # Use default location
     >>> path = get_database_path()
-    >>> print(path)  # ~/.local/share/pysparta/crs_soda (Linux)
+    >>> print(path)  # ~/.local/share/spartasolar/crs_soda (Linux)
     >>>
     >>> # Configure custom location
     >>> config.set_option('crs_soda.data_dir', '/data/crs_soda')
     >>> path = get_database_path()
     """
-    data_dir = get_option("crs_soda.data_dir", default=platformdirs.user_data_path("pysparta/crs_soda"))
+    data_dir = get_option("crs_soda.data_dir", default=platformdirs.user_data_path("spartasolar/crs_soda"))
     if not data_dir.exists():
         data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
@@ -200,7 +200,7 @@ class CRSSODAAtmosphere(
         Examples
         --------
         >>> import pandas as pd
-        >>> from pysparta import config
+        >>> from spartasolar import config
         >>> config.set_option('crs_soda.user_email', 'user@example.com')
         >>>
         >>> times = pd.date_range("2020-01-01", "2020-01-31", freq="h")
@@ -228,8 +228,8 @@ class CRSSODAAtmosphere(
         def fetch_and_distill_and_archive(year: int, path: Path) -> None:
             if (user_email := get_option("crs_soda.user_email")) is None:
                 raise ValueError("missing soda user. Add `user_email = \"<your_email_for_crs_soda>\"` in "
-                                 f"the `crs_soda` table in `{get_config_path()}` and reload pysparta or use "
-                                 "`pysparta.config.set_option(\'crs_soda.user_email\', <your_email_for_crs_soda>)`")
+                                 f"the `crs_soda` table in `{get_config_path()}` and reload spartasolar or use "
+                                 "`spartasolar.config.set_option(\'crs_soda.user_email\', <your_email_for_crs_soda>)`")
             data, metadata = fetch_crs_data_from_soda_api(
                 latitude=latitude,
                 longitude=longitude,
@@ -462,7 +462,7 @@ def fetch_crs_data_from_soda_api(
 
     Examples
     --------
-    >>> from pysparta.atmoslib.crs_sodaapi import fetch_crs_data_from_soda_api
+    >>> from spartasolar.atmoslib.crs_sodaapi import fetch_crs_data_from_soda_api
     >>> data, metadata = fetch_crs_data_from_soda_api(
     ...     latitude=36.72,
     ...     longitude=-4.42,

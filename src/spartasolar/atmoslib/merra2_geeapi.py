@@ -24,8 +24,8 @@ Examples
 Retrieve MERRA-2 data via GEE for a specific site:
 
 >>> import pandas as pd
->>> from pysparta.atmoslib import MERRA2GEEAtmosphere
->>> from pysparta import config
+>>> from spartasolar.atmoslib import MERRA2GEEAtmosphere
+>>> from spartasolar import config
 >>>
 >>> # Configure GEE project
 >>> config.set_option('merra2_gee.project', 'your-gee-project-id')
@@ -97,16 +97,16 @@ def get_database_path() -> Path:
         
     Examples
     --------
-    >>> from pysparta import config
-    >>> from pysparta.atmoslib.merra2_geeapi import get_database_path
+    >>> from spartasolar import config
+    >>> from spartasolar.atmoslib.merra2_geeapi import get_database_path
     >>>
     >>> path = get_database_path()
-    >>> print(path)  # ~/.local/share/pysparta/merra2_gee (Linux)
+    >>> print(path)  # ~/.local/share/spartasolar/merra2_gee (Linux)
     >>>
     >>> # Configure custom location
     >>> config.set_option('merra2_gee.data_dir', '/data/merra2_gee')
     """
-    data_dir = get_option("merra2_gee.data_dir", default=platformdirs.user_data_path("pysparta/merra2_gee"))
+    data_dir = get_option("merra2_gee.data_dir", default=platformdirs.user_data_path("spartasolar/merra2_gee"))
     if not data_dir.exists():
         data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
@@ -192,7 +192,7 @@ class MERRA2GEEAtmosphere(
         Examples
         --------
         >>> import pandas as pd
-        >>> from pysparta import config
+        >>> from spartasolar import config
         >>> config.set_option('merra2_gee.project', 'my-gee-project')
         >>>
         >>> times = pd.date_range("2020-06-15", periods=24, freq="h")
@@ -219,8 +219,8 @@ class MERRA2GEEAtmosphere(
             logger.info(f"fetching GEE data for year={int(year)} and path={path.as_posix()}")
             if not (gee_project := get_option("merra2_gee.project")):
                 raise ValueError("missing Google cloud's project. Add `project = \"<your_gee_project>\"` "
-                                 f"in the `merra2_gee` table in `{get_config_path()}` and reload pysparta "
-                                 "or use `pysparta.config.set_option(\'merra2_gee.project\', <your_project>)`")
+                                 f"in the `merra2_gee` table in `{get_config_path()}` and reload spartasolar "
+                                 "or use `spartasolar.config.set_option(\'merra2_gee.project\', <your_project>)`")
             logger.info(f"using GEE project <green>{gee_project}</green>")
             data = fetch_merra2_data_from_gee_api(
                 latitude=latitude,
@@ -414,7 +414,7 @@ def fetch_merra2_data_from_gee_api(
         
     Examples
     --------
-    >>> from pysparta.atmoslib.merra2_geeapi import fetch_merra2_data_from_gee_api
+    >>> from spartasolar.atmoslib.merra2_geeapi import fetch_merra2_data_from_gee_api
     >>> data = fetch_merra2_data_from_gee_api(
     ...     latitude=36.72,
     ...     longitude=-4.42,

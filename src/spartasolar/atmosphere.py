@@ -1,4 +1,4 @@
-"""Convenience module to import all atmosphere classes from pysparta.atmoslib.
+"""Convenience module to import all atmosphere classes from spartasolar.atmoslib.
 
 It provides access to various atmospheric databases that supply input
 parameters for clear-sky solar radiation modeling. Each database provides
@@ -15,7 +15,7 @@ from different sources:
 Examples
 --------
 
->>> from pysparta.atmosphere import merra2_daily
+>>> from spartasolar.atmosphere import merra2_daily
 >>> import pandas as pd
 >>>
 >>> # Use MERRA-2 daily reanalysis

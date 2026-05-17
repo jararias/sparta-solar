@@ -1,1 +1,1 @@
-::: pysparta.atmoslib
+::: spartasolar.atmoslib

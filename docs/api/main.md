@@ -1,1 +1,1 @@
-::: pysparta.interface
+::: spartasolar.interface
