@@ -106,7 +106,7 @@ def get_database_path() -> Path:
     >>> # Configure custom location
     >>> config.set_option('merra2_gee.data_dir', '/data/merra2_gee')
     """
-    data_dir = get_option("merra2_gee.data_dir", default=platformdirs.user_data_path("spartasolar/merra2_gee"))
+    data_dir = get_option("merra2_gee.data_dir", default=platformdirs.user_data_path("sparta-solar/merra2_gee"))
     if not data_dir.exists():
         data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
@@ -360,7 +360,7 @@ class MERRA2GEEAtmosphere(
                 .pipe(lambda df: df.set_index(df.index + pd.Timedelta(30, "min"))))
 
         solpos = sunwhere.sites(data.index, lat, lon)
-        sza = solpos.sza.isel(location=0).to_pandas()
+        sza = solpos.sza.isel(site=0).to_pandas()
 
         return (
             data.assign(

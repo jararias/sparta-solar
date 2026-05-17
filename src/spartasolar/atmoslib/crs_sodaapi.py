@@ -102,7 +102,7 @@ def get_database_path() -> Path:
     >>> config.set_option('crs_soda.data_dir', '/data/crs_soda')
     >>> path = get_database_path()
     """
-    data_dir = get_option("crs_soda.data_dir", default=platformdirs.user_data_path("spartasolar/crs_soda"))
+    data_dir = get_option("crs_soda.data_dir", default=platformdirs.user_data_path("sparta-solar/crs_soda"))
     if not data_dir.exists():
         data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
@@ -220,7 +220,7 @@ class CRSSODAAtmosphere(
         """
 
         version: str = "1.0.0"
-        save_csv: bool = True  # for debugging and reproducibility. The csv files are saved in the same directory as the parquet files, with the same name but .csv extension instead of .parquet
+        save_csv: bool = False  # for debugging and reproducibility. The csv files are saved in the same directory as the parquet files, with the same name but .csv extension instead of .parquet
 
         latitude = validate_type(latitude, Latitude)
         longitude = validate_type(longitude, Longitude)

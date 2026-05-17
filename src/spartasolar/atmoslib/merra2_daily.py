@@ -81,7 +81,7 @@ def get_database_path() -> Path:
         True
     """
     user_path = (get_option("merra2_daily.data_dir") or
-                 platformdirs.user_data_path('spartasolar/merra2-daily'))
+                 platformdirs.user_data_path('sparta-solar/merra2-daily'))
     if not user_path.exists():
         user_path.mkdir(parents=True, exist_ok=True)
     return user_path

@@ -157,6 +157,6 @@ def export_blosc2_to_zarr_daily(blosc2_path: Path, zarr_path: Path, year: int) -
 if __name__ == "__main__":
 
     year = int(sys.argv[1])  # 2016
-    blosc2_path = platformdirs.user_data_path("spartasolar/merra2-daily-blosc2")
-    zarr_path = platformdirs.user_data_path("spartasolar/merra2-daily")
+    blosc2_path = platformdirs.user_data_path("sparta-solar/merra2-daily-blosc2")
+    zarr_path = platformdirs.user_data_path("sparta-solar/merra2-daily")
     data = export_blosc2_to_zarr_daily(blosc2_path, zarr_path, year)

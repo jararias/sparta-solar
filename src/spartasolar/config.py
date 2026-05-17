@@ -97,7 +97,7 @@ def get_config_path() -> Path:
         Path: The absolute path to `config.toml` within the standard 
             system-specific user configuration directory.
     """
-    path = platformdirs.user_config_path(appname="spartasolar", ensure_exists=True)
+    path = platformdirs.user_config_path(appname="sparta-solar", ensure_exists=True)
     return path / "config.toml"
 
 def _init_config_file():
