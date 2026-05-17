@@ -71,11 +71,10 @@ import numpy as np
 import pandas as pd
 import platformdirs
 import sunwhere
-import xarray as xr
 from loguru import logger
 from scipy.interpolate import interp1d
 
-from ._base import BaseAtmosphere, make_cf_compliant
+from ._base import BaseAtmosphere, build_atmosphere_of_sites
 from .conversions import ozone_in_du_to_kg_m2
 from ..config import get_option, get_config_path
 from ..validation import Latitude, Longitude, validate_type
@@ -255,22 +254,20 @@ class MERRA2GEEAtmosphere(
         y_dict["albedo"] = interp1d(xi, data.albedo.values, kind="linear", axis=0)(x)
         data_interp = pd.DataFrame({"times": times} | y_dict)
 
-        # dimensions...
-        dims = ("time", "site")
-
-        # coordinates...
-        coords = {"time": ("time", times), "lat": ("site", [latitude]), "lon": ("site", [longitude])}
-        if site_name is not None:
-            coords.update({"site_name": ("site", [site_name])})
-
-        # variables...
-        data_vars = {variable: (dims, data_interp[variable].values[:, None])
-                     for variable in data.columns.drop("times_utc")}
-
-        interp_dataset = xr.Dataset(data_vars, coords)
+        global_attrs = {
+            "title:": "HourlyEarth Engine Data Catalog dataset for SPARTA",
+            "source": "NASA/GMAO MERRA-2 reanalysis via Google Earth Engine API",
+            "references": "doi:10.5067/KLICLTZ8EM9D, doi:10.5067/Q9QMY5PBNV1T, doi:10.5067/VJAFPLI1CSIV",
+        }
 
         obj = cls()
-        obj._atmosphere = make_cf_compliant(interp_dataset, overwrite=True)
+        obj._atmosphere = build_atmosphere_of_sites(
+            times=times,
+            latitude=latitude,
+            longitude=longitude,
+            constituents=data_interp.drop(columns=["times"]),
+            site_names=site_name,
+            global_attrs=global_attrs)
         return obj
 
     @staticmethod

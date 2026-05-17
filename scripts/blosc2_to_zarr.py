@@ -119,6 +119,8 @@ def export_blosc2_to_zarr_daily(blosc2_path: Path, zarr_path: Path, year: int) -
     logger.success("units conversions applied")
 
     ds = make_cf_compliant(ds)
+    ds.attrs["references"] = "doi:10.5067/KLICLTZ8EM9D, doi:10.5067/Q9QMY5PBNV1T, doi:10.5067/VJAFPLI1CSIV"
+
     logger.success("dataset made CF compliant")
 
     if not outpath.parent.exists():

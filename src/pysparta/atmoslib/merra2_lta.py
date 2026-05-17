@@ -70,8 +70,7 @@ import xarray as xr
 from loguru import logger
 
 from ..validation import Latitude, Longitude, validate_type
-from ._base import BaseAtmosphere, make_cf_compliant
-
+from ._base import BaseAtmosphere, build_atmosphere_of_sites, build_atmosphere_on_regular_grid
 
 logger.disable(__name__)
 logger = logger.opt(colors=True)
@@ -105,8 +104,8 @@ class MERRA2LTAAtmosphere(
     def at_sites(
         cls,
         times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex,
-        latitude: Sequence[float],
-        longitude: Sequence[float],
+        latitude: Sequence[float] | float,
+        longitude: Sequence[float] | float,
         site_names: Sequence[str] | None = None,
     ) -> Self:
         """Retrieve monthly climatology at specific sites.
@@ -139,8 +138,10 @@ class MERRA2LTAAtmosphere(
         ... )
         """
 
-        latitude = np.asarray([validate_type(lat, Latitude) for lat in latitude], dtype=float).reshape(-1)
-        longitude = np.asarray([validate_type(lon, Longitude) for lon in longitude], dtype=float).reshape(-1)
+        latitude = np.asarray(latitude, dtype=float).reshape(-1)
+        latitude = [validate_type(lat, Latitude) for lat in latitude]
+        longitude = np.asarray(longitude, dtype=float).reshape(-1)
+        longitude = [validate_type(lon, Longitude) for lon in longitude]
 
         if len(latitude) != len(longitude):
             raise ValueError('latitude and longitude must have the same length')
@@ -157,14 +158,19 @@ class MERRA2LTAAtmosphere(
         if "time" in output_dataset.coords:
             output_dataset = output_dataset.interp(time=times, method='quadratic')
 
-        if site_names is not None:
-            output_dataset = output_dataset.assign_coords(
-                site_name=("site", [site_names] if isinstance(site_names, str) else site_names))
-
-        output_dataset = output_dataset.compute()
+        global_attrs = {
+            "title": "Long Term Average Clear-sky Atmospheric Dataset for SPARTA",
+            "references": "doi:10.5067/KLICLTZ8EM9D, doi:10.5067/Q9QMY5PBNV1T, doi:10.5067/VJAFPLI1CSIV",
+        }
 
         obj = cls()
-        obj._atmosphere = make_cf_compliant(output_dataset, overwrite=True)
+        obj._atmosphere = build_atmosphere_of_sites(
+            times=times,
+            latitude=latitude,
+            longitude=longitude,
+            constituents=output_dataset.data_vars,
+            site_names=site_names,
+            global_attrs=global_attrs)
         return obj
 
     @classmethod
@@ -203,8 +209,10 @@ class MERRA2LTAAtmosphere(
         ... )
         """
 
-        latitude = np.asarray([validate_type(lat, Latitude) for lat in latitude], dtype=float).reshape(-1)
-        longitude = np.asarray([validate_type(lon, Longitude) for lon in longitude], dtype=float).reshape(-1)
+        latitude = np.asarray(latitude, dtype=float).reshape(-1)
+        latitude = [validate_type(lat, Latitude) for lat in latitude]
+        longitude = np.asarray(longitude, dtype=float).reshape(-1)
+        longitude = [validate_type(lon, Longitude) for lon in longitude]
 
         # load the dataset. Check for local availability. If not available, download.
         dataset = cls._load_dataset(times)
@@ -216,10 +224,18 @@ class MERRA2LTAAtmosphere(
         if "time" in output_dataset.coords:
             output_dataset = output_dataset.interp(time=times, method='quadratic')
 
-        output_dataset = output_dataset.compute()
+        global_attrs = {
+            "title": "Long Term Average Clear-sky Atmospheric Dataset for SPARTA",
+            "references": "doi:10.5067/KLICLTZ8EM9D, doi:10.5067/Q9QMY5PBNV1T, doi:10.5067/VJAFPLI1CSIV",
+        }
 
         obj = cls()
-        obj._atmosphere = make_cf_compliant(output_dataset, overwrite=True)
+        obj._atmosphere = build_atmosphere_on_regular_grid(
+            times=times,
+            latitude=latitude,
+            longitude=longitude,
+            constituents=output_dataset.data_vars,
+            global_attrs=global_attrs)
         return obj
 
     @staticmethod

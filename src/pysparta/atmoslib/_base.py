@@ -260,6 +260,25 @@ def make_cf_compliant(dataset: xr.Dataset, overwrite: bool = False) -> xr.Datase
     return dataset
 
 
+def validate_site_names(
+    site_names: str | Sequence[str | int] | None,
+    n_sites: int
+) -> Sequence[str | int]:
+    if site_names is not None:
+        if site_names == list(range(n_sites)):
+            return site_names
+        site_names = np.array(site_names, ndmin=1, dtype=str)
+        if site_names.ndim != 1:
+            raise ValueError(
+                f'expected 1-dim sequence for `site_names`, but got {site_names.ndim}-dim sequence')
+        if len(site_names) != n_sites:
+            raise ValueError(
+                f'length mismatch: `site_names` must have the same length as latitude and longitude, '
+                f'but got {len(site_names)} for `site_names` and {n_sites} for latitude/longitude')
+        return site_names
+    return list(range(n_sites))
+
+
 def build_atmosphere_of_sites(
     times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex,
     latitude: Sequence[float] | float,
@@ -325,11 +344,12 @@ def build_atmosphere_of_sites(
     n_sites = len(latitude)
 
     dims = ("time", "site")
-    coords = {"time": ("time", times), "lat": ("site", latitude), "lon": ("site", longitude)}
-
-    if site_names is not None:
-        coords.update(
-            {"site_name": ("site", [site_names] if isinstance(site_names, str) else site_names)})
+    coords = {
+        "time": ("time", times),
+        "site": ("site", validate_site_names(site_names, n_sites)),
+        "lat": ("site", latitude),
+        "lon": ("site", longitude)
+    }
 
     data_vars = {}
     for constituent_name, constituent_values in constituents.items():
@@ -632,11 +652,14 @@ class BaseAtmosphere(metaclass=abc.ABCMeta):
                 global_attrs=get_global_attrs(feature_type="grid")
             )
         else:
+            site_values = self.dataset.coords.get("site").values
+            n_sites = self.dataset.sizes["site"]
+            site_names = validate_site_names(site_values, n_sites)
             return build_atmosphere_of_sites(
                 times=self.dataset.time.values,
                 latitude=self.dataset.lat.values,
                 longitude=self.dataset.lon.values,
                 constituents=result,
-                site_names=self.dataset.coords.get("site_name", None).values if "site_name" in self.dataset.coords else None,
+                site_names=site_names,
                 global_attrs=get_global_attrs(feature_type="timeSeries")
             )

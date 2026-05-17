@@ -22,6 +22,7 @@ urls = {Homepage = "https://github.com/jararias/pysparta"}
 dependencies = [
     "blosc2>=4.1.2",
     "dask[complete]>=2026.3.0",
+    "huggingface-hub>=1.15.0",
     "loguru>=0.7.3",
     "netcdf4>=1.7.4",
     "numpy>=2.4.4",
@@ -29,7 +30,7 @@ dependencies = [
     "platformdirs>=4.9.6",
     "pyarrow>=24.0.0",
     "scipy>=1.17.1",
-    "sunwhere",
+    "sunwhere>=1.4.0",
     "tomlkit>=0.15.0",
     "xarray>=2026.4.0",
     "zarr>=3.2.1",
@@ -42,10 +43,6 @@ docs = [
     "mkdocstrings[python]>=1.0.4",
     "pymdown-extensions>=10.21.2",
     "zensical>=0.0.41",
-]
-
-merra2-daily = [
-    "huggingface-hub>=1.14.0",
 ]
 
 merra2-gee = [
@@ -82,9 +79,6 @@ include = [
 # Equivale a package-dir = {"" = "."} y packages.find (namespaces = true) en setuptools
 # uv-build busca automáticamente paquetes con __init__.py o directorios de namespaces
 packages = ["pysparta"]
-
-[tool.uv.sources]
-sunwhere = { git = "https://github.com/jararias/sunwhere" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

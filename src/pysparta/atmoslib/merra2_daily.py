@@ -49,6 +49,7 @@ See Also:
 from pathlib import Path
 from typing import Self, Sequence
 
+import huggingface_hub as Hf
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
@@ -56,7 +57,7 @@ import platformdirs
 import xarray as xr
 from loguru import logger
 
-from ._base import BaseAtmosphere, make_cf_compliant
+from ._base import BaseAtmosphere, build_atmosphere_of_sites, build_atmosphere_on_regular_grid
 from ..config import get_option
 from ..validation import Latitude, Longitude, validate_type
 
@@ -177,7 +178,6 @@ class MERRA2DailyAtmosphere(
 
         latitude = [latitude] if isinstance(latitude, (float, int)) else latitude
         latitude = np.asarray([validate_type(lat, Latitude) for lat in latitude], dtype=float).reshape(-1)
-
         longitude = [longitude] if isinstance(longitude, (float, int)) else longitude
         longitude = np.asarray([validate_type(lon, Longitude) for lon in longitude], dtype=float).reshape(-1)
 
@@ -199,22 +199,27 @@ class MERRA2DailyAtmosphere(
         if "time" in output_dataset.coords:
             output_dataset = output_dataset.interp(time=times, method='quadratic')
 
-        if site_names is not None:
-            output_dataset = output_dataset.assign_coords(
-                site_name=("site", [site_names] if isinstance(site_names, str) else site_names))
-
-        output_dataset = output_dataset.compute()
+        global_attrs = {
+            "title": "Daily Clear-sky Atmospheric Dataset for SPARTA",
+            "references": "doi:10.5067/KLICLTZ8EM9D, doi:10.5067/Q9QMY5PBNV1T, doi:10.5067/VJAFPLI1CSIV",
+        }
 
         obj = cls()
-        obj._atmosphere = make_cf_compliant(output_dataset, overwrite=True)
+        obj._atmosphere = build_atmosphere_of_sites(
+            times=times,
+            latitude=latitude,
+            longitude=longitude,
+            constituents=output_dataset.data_vars,
+            site_names=site_names,
+            global_attrs=global_attrs)
         return obj
 
     @classmethod
     def on_regular_grid(
         cls,
         times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex,
-        latitude: Sequence[float],
-        longitude: Sequence[float],
+        latitude: Sequence[float] | float,
+        longitude: Sequence[float] | float,
     ) -> Self:
         """Load atmospheric data on a regular lat/lon grid.
         
@@ -260,7 +265,9 @@ class MERRA2DailyAtmosphere(
             (10, 9, 15)
         """
 
+        latitude = [latitude] if isinstance(latitude, (float, int)) else latitude
         latitude = np.asarray([validate_type(lat, Latitude) for lat in latitude], dtype=float).reshape(-1)
+        longitude = [longitude] if isinstance(longitude, (float, int)) else longitude
         longitude = np.asarray([validate_type(lon, Longitude) for lon in longitude], dtype=float).reshape(-1)
 
         # load the dataset. Check for local availability. If not available, download.
@@ -274,10 +281,18 @@ class MERRA2DailyAtmosphere(
         if "time" in output_dataset.coords:
             output_dataset = output_dataset.interp(time=times, method='quadratic')
 
-        output_dataset = output_dataset.compute()
+        global_attrs = {
+            "title": "Daily Clear-sky Atmospheric Dataset for SPARTA",
+            "references": "doi:10.5067/KLICLTZ8EM9D, doi:10.5067/Q9QMY5PBNV1T, doi:10.5067/VJAFPLI1CSIV",
+        }
 
         obj = cls()
-        obj._atmosphere = make_cf_compliant(output_dataset, overwrite=True)
+        obj._atmosphere = build_atmosphere_on_regular_grid(
+            times=times,
+            latitude=latitude,
+            longitude=longitude,
+            constituents=output_dataset.data_vars,
+            global_attrs=global_attrs)
         return obj
 
     @staticmethod
@@ -326,12 +341,30 @@ class MERRA2DailyAtmosphere(
             years.add(max(years)+1)
         return sorted(years)
 
-    @staticmethod
-    def _ensure_all_paths_are_local(paths: list[Path]) -> None:
-        for path in paths:
-            if not path.exists():
-                logger.warning(f"missing path `{path}`. Fetching the dataset")
-                raise NotImplementedError(f"missing path `{path}`. Fetching the dataset is not implemented yet")
+    @classmethod
+    def _ensure_all_paths_are_local(cls, paths: list[Path]) -> None:
+
+        START_YEAR = 1999
+        END_YEAR = 2018
+
+        def missing_paths():
+            for path in filter(lambda p: not p.exists(), paths):
+                year = int(path.stem)
+                if not (START_YEAR <= year <= END_YEAR):
+                    raise ValueError(f"requested year {year} is out of range for "
+                                     f"MERRA-2 daily data ({START_YEAR}-{END_YEAR})")
+                yield path, year
+
+        def download_Hf_yearly_chunk(year: int):
+            logger.info(f"downloading MERRA-2 daily data for year {year} from Hugging Face Hub...")
+            Hf.snapshot_download(
+                repo_id="josearuizarias/merra2-daily-clearsky",
+                repo_type="dataset",
+                allow_patterns=[f"{year}/*"],
+                local_dir=cls.database_path)
+
+        for path, year in missing_paths():
+            download_Hf_yearly_chunk(year)
 
     @classmethod
     def _load_dataset(

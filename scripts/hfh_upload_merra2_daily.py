@@ -2,21 +2,32 @@
 import os
 from pathlib import Path
 
-from huggingface_hub import HfApi
+import huggingface_hub as Hf
 from dotenv import load_dotenv
 
 load_dotenv()
 
-year = 2017
-local_path = Path("/home/jararias/.local/share/pysparta/merra2_daily")
+LOCAL_REPO_PATH = Path("/home/jararias/.local/share/pysparta/merra2-daily-for-huggingface")
 
-# Sube toda la carpeta local al repo de Hugging Face
-api = HfApi()
-api.upload_folder(
-    repo_id="josearuizarias/merra2-daily-clearsky",
-    folder_path=local_path / f"{year}",
-    path_in_repo=f"{year}",
-    repo_type="dataset",
-    run_as_future=True,
-    token=os.getenv("HUGGING_FACE_HUB_TOKEN"),
-)
+def delete_Hf_yearly_chunk(year: int):
+    Hf.delete_folder(
+        repo_id="josearuizarias/merra2-daily-clearsky",
+        repo_type="dataset",
+        path_in_repo=str(year),
+        token=os.getenv("HUGGING_FACE_HUB_TOKEN"))
+
+def upload_Hf_yearly_chunk(year: int):
+    Hf.upload_folder(
+        repo_id="josearuizarias/merra2-daily-clearsky",
+        repo_type="dataset",
+        folder_path=LOCAL_REPO_PATH / f"{year}",
+        path_in_repo=f"{year}",
+        run_as_future=True,
+        token=os.getenv("HUGGING_FACE_HUB_TOKEN"))
+
+if __name__ == "__main__":
+
+    for year in range(2015, 1998, -1):
+        print(f"Uploading {year}...")
+        upload_Hf_yearly_chunk(year)
+

@@ -70,21 +70,21 @@ def set_logger(enable: bool = True, capture_warnings: bool = True, **kwargs):
         >>> set_logger(level="DEBUG", with_mp=True)
     """
 
-    if enable:
-        default_kwargs = dict(
-            sink=sys.stderr,
-            level="INFO",
-            format=get_message_format(),
-            colorize=True,
-        )
-        logger.remove()
-        logger.add(**(default_kwargs | (kwargs or {})))
-        logger.enable("pysparta")
-        if capture_warnings:
-            def loguru_shows_warnings(message, category, filename, lineno, *args, **kwargs):
-                logger.opt(depth=2).warning(f"{category.__name__}: {message}")
-            warnings.showwarning = loguru_shows_warnings
-    else:
-        logger.disable("pysparta")
+    # if enable:
+    default_kwargs = dict(
+        sink=sys.stderr,
+        level="INFO",
+        format=get_message_format(),
+        colorize=True,
+    )
+    logger.remove()
+    logger.add(**(default_kwargs | (kwargs or {})))
+    logger.enable("pysparta")
+    if capture_warnings:
+        def loguru_shows_warnings(message, category, filename, lineno, *args, **kwargs):
+            logger.opt(depth=2).warning(f"{category.__name__}: {message}")
+        warnings.showwarning = loguru_shows_warnings
+    # else:
+    #     logger.disable("pysparta")
 
 

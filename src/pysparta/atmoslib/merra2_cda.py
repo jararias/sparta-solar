@@ -115,19 +115,20 @@ class MERRA2CDAAtmosphere(
         ... )
         """
 
-        dataset = super().sites(
+        lta_atmos = super().at_sites(
             times=times,
             latitude=latitude,
             longitude=longitude,
             site_names=site_names)
 
-        if "pwater" in dataset:
-            dataset["pwater"] = 0.1
+        if "pwater" in lta_atmos.dataset:
+            lta_atmos.dataset["pwater"] = 0.1
 
-        if "beta" in dataset:
-            dataset["beta"] = 0.01
+        if "beta" in lta_atmos.dataset:
+            lta_atmos.dataset["beta"] = 0.01
 
-        return dataset
+        lta_atmos.dataset.attrs["title"] = "Clean and Dry, LTA Atmospheric Dataset for SPARTA"
+        return lta_atmos
 
     @classmethod
     def on_regular_grid(
@@ -167,15 +168,16 @@ class MERRA2CDAAtmosphere(
         ... )
         """
 
-        dataset = super().on_regular_grid(
+        lta_atmos = super().on_regular_grid(
             times=times,
             latitude=latitude,
             longitude=longitude)
 
-        if "pwater" in dataset:
-            dataset["pwater"] = 0.1
+        if "pwater" in lta_atmos.dataset:
+            lta_atmos.dataset["pwater"] = 0.1
 
-        if "beta" in dataset:
-            dataset["beta"] = 0.01
+        if "beta" in lta_atmos.dataset:
+            lta_atmos.dataset["beta"] = 0.01
 
-        return dataset
+        lta_atmos.dataset.attrs["title"] = "Clean and Dry, LTA Atmospheric Dataset for SPARTA"
+        return lta_atmos

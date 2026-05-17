@@ -65,11 +65,10 @@ import numpy as np
 import pandas as pd
 import platformdirs
 import requests
-import xarray as xr
 from loguru import logger
 from scipy.interpolate import interp1d
 
-from ._base import BaseAtmosphere, make_cf_compliant
+from ._base import BaseAtmosphere, build_atmosphere_of_sites
 from .conversions import ozone_in_du_to_kg_m2
 from ..config import get_option, get_config_path
 from ..validation import Latitude, Longitude, SodaStream, SodaTimeStep, validate_type
@@ -268,22 +267,21 @@ class CRSSODAAtmosphere(
         y_dict["albedo"] = interp1d(xi, data.albedo.values, kind="linear", axis=0)(x)
         data_interp = pd.DataFrame({"times": times} | y_dict)
 
-        # dimensions...
-        dims = ("time", "site")
-
-        # coordinates...
-        coords = {"time": ("time", times), "lat": ("site", [latitude]), "lon": ("site", [longitude])}
-        if site_name is not None:
-            coords.update({"site_name": ("site", [site_name])})
-
-        # variables...
-        data_vars = {variable: (dims, data_interp[variable].values[:, None])
-                     for variable in data.columns.drop("times_utc")}
-
-        interp_dataset = xr.Dataset(data_vars, coords)
+        global_attrs = {
+            "title:": "Hourly CRS SODA McClear dataset for SPARTA",
+            "source": "WPS SODA API, https://www.soda-pro.com/web-services/radiation/cams-mcclear",
+            "version": version,
+            "references": "https://confluence.ecmwf.int/display/CKB/CAMS+solar+radiation+time-series%3A+data+documentation",
+        }
 
         obj = cls()
-        obj._atmosphere = make_cf_compliant(interp_dataset, overwrite=True)
+        obj._atmosphere = build_atmosphere_of_sites(
+            times=times,
+            latitude=latitude,
+            longitude=longitude,
+            constituents=data_interp.drop(columns=["times"]),
+            site_names=site_name,
+            global_attrs=global_attrs)
         return obj
 
     @staticmethod
