@@ -1,0 +1,83 @@
+[project]
+site_name = ""
+site_description = "Batteries-included clear-sky solar radiation for solar resource assessment"
+site_url = "https://jararias.github.io/sparta-solar"
+repo_url = "https://github.com/jararias/sparta-solar"
+site_author = "Jose A Ruiz-Arias"
+nav = [
+    {"Home" = "index.md"},
+    {"Installation" = "installation.md"},
+    {"User Guide" = "user-guide.md"},
+    {"Quick Reference" = "quick-reference.md"},
+    {"API Reference" = "api.md"},
+]
+
+[project.theme]
+theme = "material"
+palette.scheme = "default"
+palette.primary = "indigo"
+palette.accent = "orange"
+logo = "images/headerfig.png"
+features = [
+    "content.code.copy",      # Añade un botón flotante para copiar el código
+    "content.code.select",    # Permite al usuario seleccionar rangos de líneas
+    "content.code.annotate"   # Habilita notas explicativas flotantes dentro del código
+]
+
+# [docs]
+# # Directorio de documentación fuente
+# source = "docs"
+# # Directorio de salida para el sitio generado
+# output = "site"
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["src/spartasolar"]
+inventories = [
+    "https://docs.python.org/3/objects.inv",
+    "http://pandas.pydata.org/pandas-docs/stable/objects.inv",
+    "https://docs.xarray.dev/en/stable/objects.inv",
+    "https://numpy.org/doc/stable/objects.inv"
+]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+docstring_style = "numpy"
+backlinks = "tree"
+docstring_options = { "ignore_init_summary" = true }
+docstring_section_style = "list"
+filters = "public"
+heading_level = 3
+inherited_members = true
+merge_init_into_class = true
+parameter_headings = true
+separate_signature = true
+show_root_heading = true
+show_root_full_path = false
+show_signature_annotations = true
+show_source = true
+show_symbol_type_heading = true
+show_symbol_type_toc = true
+signature_crossrefs = true
+summary = true
+unwrap_annotated = true
+
+[code]
+# Resaltado de sintaxis
+highlight_theme = "monokai"
+line_numbers = true
+
+[project.markdown_extensions.admonition]
+
+[project.markdown_extensions.pymdownx.blocks.caption]
+prepend = true
+
+[project.markdown_extensions.pymdownx.details]
+
+[project.markdown_extensions.pymdownx.highlight]
+anchor_linenums = true
+line_spans = "__span"
+pygments_lang_class = true
+
+[project.markdown_extensions.pymdownx.superfences]
+
+[project.markdown_extensions.pymdownx.tabbed]
+alternate_style = true  # Hace que las pestañas se vean más modernas y limpias
