@@ -234,11 +234,11 @@ def make_cf_compliant(dataset: xr.Dataset, overwrite: bool = False) -> xr.Datase
             if "calendar" in dataset.coords[coord].encoding and "calendar" not in dataset.coords[coord].attrs:
                 dataset.coords[coord].attrs["calendar"] = dataset.coords[coord].encoding["calendar"]
 
-    if "site_name" in dataset.coords:
-        if "long_name" not in dataset.coords["site_name"].attrs:
-            dataset.coords["site_name"].attrs["long_name"] = "name of the site"
-        if "cf_role" not in dataset.coords["site_name"].attrs:
-            dataset.coords["site_name"].attrs["cf_role"] = "timeseries_id"
+    if "site" in dataset.coords:
+        if "long_name" not in dataset.coords["site"].attrs:
+            dataset.coords["site"].attrs["long_name"] = "name of the site"
+        if "cf_role" not in dataset.coords["site"].attrs:
+            dataset.coords["site"].attrs["cf_role"] = "timeseries_id"
 
     # Ensure data variables have the correct attributes
     for var in dataset.data_vars:
@@ -264,6 +264,26 @@ def validate_site_names(
     site_names: str | Sequence[str | int] | None,
     n_sites: int
 ) -> Sequence[str | int]:
+    """Validate and normalise a site-name sequence.
+
+    Parameters
+    ----------
+    site_names : str, Sequence[str | int], or None
+        Site names to validate.  If ``None``, returns ``[0, 1, …, n_sites-1]``.
+    n_sites : int
+        Expected number of sites.
+
+    Returns
+    -------
+    Sequence[str | int]
+        Validated site names as a 1-D array of strings, or an integer range.
+
+    Raises
+    ------
+    ValueError
+        If ``site_names`` is not 1-dimensional or its length differs from
+        ``n_sites``.
+    """
     if site_names is not None:
         if site_names == list(range(n_sites)):
             return site_names
@@ -519,9 +539,12 @@ class BaseAtmosphere(metaclass=abc.ABCMeta):
     def __init_subclass__(cls, database_path: str, **kwargs):
         """Automatically sets the database path for subclasses.
 
-        Args:
-            database_path: The directory path where the specific 
-                atmosphere data is stored.
+        Parameters
+        ----------
+        database_path : str or None
+            The directory path where the specific atmosphere data is stored.
+            Pass ``None`` for sources that do not use a file database
+            (e.g. ``CustomAtmosphere`` or API-based retrievers).
         """
         super().__init_subclass__(**kwargs)
         cls.database_path = None if database_path is None else Path(database_path)

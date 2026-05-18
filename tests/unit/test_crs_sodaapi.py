@@ -36,7 +36,7 @@ def soda_atmosphere():
     from spartasolar import config
     from spartasolar.atmoslib.crs_sodaapi import CRSSODAAtmosphere
 
-    # Point to test data via config option, then refresh the class attribute
+    # Point to test data via config option; at_site() resolves the path from config
     config.set_option("crs_soda.data_dir", DATA_DIR)
     return CRSSODAAtmosphere.at_site(
         times=TEST_TIMES,
@@ -221,7 +221,8 @@ class TestSODAvsGEEConsistency:
     """
     SODA (CAMS) and GEE (MERRA-2) are independent data sources; they should
     give broadly similar atmospheric parameters for the same location/period.
-    Tolerances are generous (20–40%) to account for real inter-source differences.
+    Tolerances are generous (25% for GHI, 35% for DNI) to account for real
+    inter-source differences.
     """
 
     @pytest.fixture(autouse=True)
@@ -231,6 +232,7 @@ class TestSODAvsGEEConsistency:
 
         gee_data_dir = Path(__file__).parent.parent / "data" / "merra2_gee"
         config.set_option("merra2_gee.data_dir", gee_data_dir)
+        # Explicitly refresh the class attribute since the module may already be cached
         MERRA2GEEAtmosphere.database_path = get_database_path()
         gee_atm = MERRA2GEEAtmosphere.at_site(
             times=TEST_TIMES, latitude=TEST_LAT, longitude=TEST_LON,

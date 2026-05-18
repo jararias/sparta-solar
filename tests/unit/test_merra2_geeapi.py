@@ -36,7 +36,7 @@ def gee_atmosphere():
     from spartasolar import config
     from spartasolar.atmoslib.merra2_geeapi import MERRA2GEEAtmosphere
 
-    # Point to test data via config option, then refresh the class attribute
+    # Point to test data via config option; at_site() resolves the path from config
     config.set_option("merra2_gee.data_dir", DATA_DIR)
     return MERRA2GEEAtmosphere.at_site(
         times=TEST_TIMES,

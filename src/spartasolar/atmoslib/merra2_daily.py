@@ -38,8 +38,8 @@ Examples:
     ... )
     
     >>> # Access atmospheric variables
-    >>> pressure = atmos.get("pressure")
-    >>> albedo = atmos.get("albedo")
+    >>> pressure = atmos.dataset["pressure"]
+    >>> albedo = atmos.dataset["albedo"]
 
 See Also:
     - MERRA2LTAAtmosphere: Long-term average MERRA-2 climatology
@@ -67,18 +67,22 @@ logger = logger.opt(colors=True)
 
 def get_database_path() -> Path:
     """Get the local path to MERRA-2 daily database.
-    
-    Returns the configured data directory path or the default platform-specific
-    user data path. Creates the directory if it doesn't exist.
-    
-    Returns:
-        Path: Directory path where MERRA-2 daily data is stored/cached.
-        
-    Examples:
-        >>> from spartasolar.atmoslib.merra2_daily import get_database_path
-        >>> db_path = get_database_path()
-        >>> print(db_path.exists())
-        True
+
+    Returns the configured data directory path (``merra2_daily.data_dir``
+    config option) or the default platform-specific user data path.
+    Creates the directory if it does not already exist.
+
+    Returns
+    -------
+    Path
+        Directory where MERRA-2 daily Zarr archives are stored/cached.
+
+    Examples
+    --------
+    >>> from spartasolar.atmoslib.merra2_daily import get_database_path
+    >>> db_path = get_database_path()
+    >>> print(db_path.exists())
+    True
     """
     user_path = (get_option("merra2_daily.data_dir") or
                  platformdirs.user_data_path('sparta-solar/merra2-daily'))
@@ -171,7 +175,7 @@ class MERRA2DailyAtmosphere(
             ... )
             
             >>> # Access data
-            >>> pressure = atmos.get("pressure")
+            >>> pressure = atmos.dataset["pressure"]
             >>> print(pressure.dims)
             ('time', 'site')
         """
@@ -258,7 +262,7 @@ class MERRA2DailyAtmosphere(
             ... )
             
             >>> # Access gridded data
-            >>> albedo = atmos.get("albedo")
+            >>> albedo = atmos.dataset["albedo"]
             >>> print(albedo.dims)
             ('time', 'lat', 'lon')
             >>> print(albedo.shape)
@@ -343,7 +347,19 @@ class MERRA2DailyAtmosphere(
 
     @classmethod
     def _ensure_all_paths_are_local(cls, paths: list[Path]) -> None:
+        """Ensure all annual data directories exist locally, downloading if needed.
 
+        Parameters
+        ----------
+        paths : list[Path]
+            Paths to annual data directories to check.  Each path stem must
+            be a 4-digit year string.
+
+        Raises
+        ------
+        ValueError
+            If a requested year is outside the available range (1999–2018).
+        """
         START_YEAR = 1999
         END_YEAR = 2018
 
@@ -371,7 +387,21 @@ class MERRA2DailyAtmosphere(
         cls,
         times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex,
     ) -> xr.Dataset:
+        """Load and concatenate annual MERRA-2 daily Zarr archives.
 
+        Downloads missing year files from Hugging Face Hub if necessary,
+        then opens all required annual archives as a single lazy dataset.
+
+        Parameters
+        ----------
+        times : np.ndarray or pd.DatetimeIndex
+            Time stamps that must be covered by the loaded data.
+
+        Returns
+        -------
+        xr.Dataset
+            Lazily opened dataset with dimensions (time, lat, lon).
+        """
         years = cls._infer_years_from_times(times)
         paths = [cls.database_path / str(year) for year in sorted(years)]
         cls._ensure_all_paths_are_local(paths)  # if any path is missing, download it

@@ -36,6 +36,8 @@ def gee_atmosphere():
     from spartasolar import config
     from spartasolar.atmoslib.merra2_geeapi import MERRA2GEEAtmosphere, get_database_path
 
+    # Point to test data via config option; explicitly refresh the class
+    # attribute since the module may already be cached at import time
     config.set_option("merra2_gee.data_dir", GEE_DATA_DIR)
     MERRA2GEEAtmosphere.database_path = get_database_path()
     return MERRA2GEEAtmosphere.at_site(

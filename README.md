@@ -3,6 +3,8 @@
 **Solar PArameterization of the Radiative Transfer of the Atmosphere**
 
 [![Python Version](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org/downloads/)
+[![Tests](badges/tests.svg)](badges/tests.svg)
+[![Coverage](badges/coverage.svg)](badges/coverage.svg)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-103%20passing-success)](tests/)
 

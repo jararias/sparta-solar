@@ -58,4 +58,5 @@ junit-results.xml
 coverage.xml
 htmlcov/
 nosetests.xml
-tox/
+tox/reports/
+

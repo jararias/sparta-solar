@@ -1,0 +1,1 @@
+Diseño con [ideogram](https://ideogram.ai) y retoque con [canva](https://www.canva.com/) y con GIMP
