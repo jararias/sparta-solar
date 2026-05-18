@@ -1,50 +1,49 @@
-![header](images/headerfig.png)
+<!-- <figure markdown="span">
+![header](images/sunny-helmet-black-transparent.png){ width="250" align=left loading=lazy }
+<strong>Batteries-included clear-sky solar radiation for solar resource assessment</strong>
+</figure> -->
+<div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
+  <img src="images/sunny-helmet-black-transparent-recortada.png" width="250" alt="Logo" style="margin: 0;">
+  <h1 style="margin: 0;">SPARTA Solar<br>A batteries-included clear-sky solar radiation model</h1>
+</div>
 
 ![Python version](https://img.shields.io/badge/python-3.12%2B-blue.svg)
-[![Tests](../badges/tests.svg)](../badges/tests.svg)
-[![Coverage](../badges/coverage.svg)](../badges/coverage.svg)
+[![Tests](images/badges/tests.svg)](images/badges/tests.svg)
+[![Coverage](images/badges/coverage.svg)](images/badges/coverage.svg)
 [![License](https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
-**sparta-solar** is a Python library for computing **clear-sky solar irradiance** at the surface
-using the SPARTA (Solar PArameterization of the Radiative Transfer of the Atmosphere) model.
-It integrates seamlessly with multiple atmospheric databases to supply the aerosol, water vapour,
-ozone, and pressure inputs that the radiative transfer model requires.
+**sparta-solar** is a Python library for computing **clear-sky solar irradiance** at the surface using the SPARTA ([Solar PArameterization of the Radiative Transfer of the Atmosphere](http://hdl.handle.net/10630/28011)) model. It integrates seamlessly with multiple atmospheric databases to supply the aerosol, water vapour, ozone, and pressure inputs that the radiative transfer model requires.
 
 ## Key features
 
 #### Physics-based clear-sky irradiance
 
-SPARTA is a high-accuracy **2-band broadband** clear-sky model that computes direct
-normal (DNI), global horizontal (GHI), diffuse horizontal (DHI), and circumsolar
-irradiance (CSI) simultaneously. It is fully vectorized and handles nighttime
-masking, surface albedo feedback, and aerosol–Rayleigh coupling.
+SPARTA is a high-accuracy **2-band broadband** clear-sky model that computes direct normal (DNI), global horizontal (GHI), diffuse horizontal (DIF) and, unique in its class, circumsolar irradiance (CSI). It is fully vectorized and handles nighttime
+masking, surface albedo feedback and aerosol–Rayleigh coupling.
 
-A legacy clear-sky model (Bird & Hulstrom, 1981) is also included for comparison
-and backward-compatibility studies.
+A legacy clear-sky model (Bird & Hulstrom, 1981) is also included for comparison and backward-compatibility studies.
 
 #### Multiple atmospheric databases
 
-sparta-solar ships with ready-to-use connectors for several atmospheric datasets,
+**sparta-solar** ships with ready-to-use connectors for several atmospheric datasets,
 covering different temporal resolutions, geographic extents, and access methods:
 
 | Source | Module | Coverage | Resolution |
 |---|---|---|---|
-| NASA MERRA-2 daily reanalysis | `merra2_daily` | 1980–present, global | 0.5° × 0.625° |
-| MERRA-2 long-term averages | `merra2_lta` | 1999–2018 climatology, global | 0.5° × 0.625° |
-| MERRA-2 via Google Earth Engine | `merra2_gee` | 1980–present, global | 0.5° × 0.625° |
-| Copernicus CRS via SODA API | `crs_soda` | 2004–present, Europe/Africa | 1-min (resampled) |
+| NASA MERRA-2 reanalysis<br>from a dedicated<br>Hugging Face dataset | `merra2_daily` | 1999–2018<br>daily time steps<br>global coverage<br>point and gridded | 0.5° × 0.625° |
+| NASA MERRA-2 reanalysis<br>long-term averages<br>built-in | `merra2_lta` | 1999–2018 climatology<br>12 monthly values<br>global coverage<br>point and gridded | 0.5° × 0.625° |
+| NASA MERRA-2 reanalysis<br>via Google Earth Engine<br>(requires GEE account) | `merra2_gee` | 1980–present<br>hourly time steps<br>global coverage<br>point | 0.5° × 0.625° |
+| CAMS radiation service<br>via SODA API<br>(requries SODA account) | `crs_soda` | 2004–present<br>hourly (resampled) time steps<br>global coverage<br>point | 0.75° × 0.75° |
 | User-defined | `custom` | Any | Any |
 
 #### CF-compliant xarray outputs
 
 All outputs are returned as `xarray.Dataset` objects following
-[Climate and Forecast (CF-1.11)](https://cfconventions.org/) metadata conventions —
-ready for analysis, visualization, or export to NetCDF/Zarr.
+[Climate and Forecast (CF-1.11)](https://cfconventions.org/) metadata conventions — ready for analysis, visualization, or export to NetCDF/Zarr.
 
 #### Flexible configuration
 
-A TOML-based configuration system lets you set data directories, API credentials,
-and algorithm preferences once, globally, without cluttering your scripts.
+A TOML-based configuration system lets you set data directories, API credentials, and algorithm preferences once, globally, without cluttering your scripts.
 
 ---
 
@@ -109,30 +108,20 @@ print(f"GHI = {out['ghi']:.1f} W/m²,  DNI = {out['dni']:.1f} W/m²")
 
 ## Getting started
 
-Ready to use sparta-solar? Start with the [Installation](installation.md) guide,
-then follow the [User Guide](user-guide.md) for a detailed walkthrough of every
-atmospheric data source.
+Ready to use sparta-solar? Start with the [Installation](installation.md) guide, then follow the [User Guide](user-guide.md) for a detailed walkthrough of every atmospheric data source.
 
 ---
 
 ## References
 
-- **SPARTA model**: Ruiz-Arias, J. A. (2023). SPARTA: Solar parameterization for the
-  radiative transfer of the cloudless atmosphere. *Renewable and Sustainable Energy
-  Reviews*, 188, 113833. <https://doi.org/10.1016/j.rser.2023.113833>
-- **MERRA-2**: Gelaro, R., et al. (2017). The Modern-Era Retrospective Analysis for
-  Research and Applications, Version 2 (MERRA-2). *J. Climate*, 30, 5419–5454.
-  <https://doi.org/10.1175/JCLI-D-16-0758.1>
-- **CRS/SODA**: Gschwind, B., et al. (2019). Improving the McClear model estimating the
-  downwelling solar radiation at ground level in cloud-free conditions. *Met. Apps.*,
-  26, 571–576. <https://doi.org/10.1002/met.1774>
-- **Bird model**: Bird, R. E. and Hulstrom, R. L. (1981). A Simplified Clear Atmosphere
-  Radiative Transmittance Model. SERI/TR-642-1156.
+- **SPARTA model**: Ruiz-Arias, J. A. (2023). SPARTA: Solar parameterization for the radiative transfer of the cloudless atmosphere. *Renewable and Sustainable Energy Reviews*, 188, 113833. <https://doi.org/10.1016/j.rser.2023.113833>
+- **MERRA-2 Reanalysis**: Gelaro, R., et al. (2017). The Modern-Era Retrospective Analysis for Research and Applications, Version 2 (MERRA-2). *J. Climate*, 30, 5419–5454. <https://doi.org/10.1175/JCLI-D-16-0758.1>
+- **CRS/SODA**: Gschwind, B., et al. (2019). Improving the McClear model estimating the downwelling solar radiation at ground level in cloud-free conditions. *Met. Apps.*, 26, 571–576. <https://doi.org/10.1002/met.1774>
+- **Bird model**: Bird, R. E. and Hulstrom, R. L. (1981). A Simplified Clear Atmosphere Radiative Transmittance Model. SERI/TR-642-1156.
 
 ## License
 
-sparta-solar is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) —
-free for non-commercial use with attribution.
+sparta-solar is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) — free for non-commercial use with attribution.
 
 ## Citation
 
@@ -141,8 +130,7 @@ If you use sparta-solar in your research, please cite:
 ```bibtex
 @article{ruizarias2023sparta,
   author  = {Ruiz-Arias, Jose A.},
-  title   = {{SPARTA}: Solar parameterization for the radiative transfer
-             of the cloudless atmosphere},
+  title   = {{SPARTA}: Solar parameterization for the radiative transfer of the cloudless atmosphere},
   journal = {Renewable and Sustainable Energy Reviews},
   volume  = {188},
   pages   = {113833},

@@ -17,18 +17,12 @@ theme = "material"
 palette.scheme = "default"
 palette.primary = "indigo"
 palette.accent = "orange"
-logo = "images/headerfig.png"
+logo = "images/sunny-helmet-black-transparent.png"
 features = [
     "content.code.copy",      # Añade un botón flotante para copiar el código
     "content.code.select",    # Permite al usuario seleccionar rangos de líneas
     "content.code.annotate"   # Habilita notas explicativas flotantes dentro del código
 ]
-
-# [docs]
-# # Directorio de documentación fuente
-# source = "docs"
-# # Directorio de salida para el sitio generado
-# output = "site"
 
 [project.plugins.mkdocstrings.handlers.python]
 paths = ["src"]
@@ -71,6 +65,10 @@ line_numbers = true
 prepend = true
 
 [project.markdown_extensions.pymdownx.details]
+
+[project.markdown_extensions.attr_list]
+
+[project.markdown_extensions.md_in_html]
 
 [project.markdown_extensions.pymdownx.highlight]
 anchor_linenums = true

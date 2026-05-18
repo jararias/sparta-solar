@@ -1,7 +1,6 @@
 # User Guide
 
-This guide explains how sparta-solar is organized and walks you through every
-atmospheric data source with practical examples.
+This guide explains how **sparta-solar** is organized and walks you through every atmospheric data source with practical examples.
 
 ---
 
@@ -9,25 +8,24 @@ atmospheric data source with practical examples.
 
 ### The two-step workflow
 
-sparta-solar separates **atmospheric data retrieval** from **irradiance
+**sparta-solar** separates **atmospheric data retrieval** from **irradiance
 computation**. Every workflow follows the same two-step pattern:
 
 ```python
-# Step 1 — load atmospheric constituents
-atm = merra2_daily.at_sites(times=times, latitude=lat, longitude=lon)
+# Step 1 — load atmospheric constituents into and atmosphere instance
+atmos = merra2_daily.at_sites(times=times, latitude=lats, longitude=lons)
 
-# Step 2 — compute clear-sky irradiance
-result = atm.compute(model="SPARTA")
+# Step 2 — compute clear-sky irradiance for that atmosphere instance
+result = atmos.compute(model="SPARTA")
 ```
 
-`atm` is a `BaseAtmosphere` instance whose `.dataset` property holds an
-`xarray.Dataset` with the atmospheric variables needed by the model:
+`atmos` is a `BaseAtmosphere` instance whose `.dataset` property holds an `xarray.Dataset` with the atmospheric variables (the constituents of the clear-sky atmosphere) needed by the model:
 
 | Variable | Description | Units |
 |---|---|---|
 | `pressure` | Surface pressure | Pa |
-| `pwater` | Precipitable water | cm |
-| `ozone` | Total column ozone | atm-cm |
+| `pwater` | Total-column water vapor amount,<br>or precipitable water | kg m-2 |
+| `ozone` | Total column ozone content | kg m-2 |
 | `beta` | Ångström turbidity coefficient | – |
 | `alpha` | Ångström wavelength exponent | – |
 | `ssa` | Aerosol single-scattering albedo | – |
@@ -41,7 +39,7 @@ After `.compute()`, the returned dataset contains:
 | `dni` | Clear-sky direct normal irradiance | W m⁻² |
 | `dif` | Clear-sky diffuse horizontal irradiance | W m⁻² |
 | `dhi` | Clear-sky direct horizontal irradiance | W m⁻² |
-| `csi` | Circumsolar irradiance | W m⁻² |
+| `csi` | Clear-sky circumsolar irradiance | W m⁻² |
 | `cosz` | Cosine of solar zenith angle | – |
 
 ### Two spatial layouts
