@@ -177,7 +177,7 @@ def get_option(name: str, default: Any = None) -> Any:
     table_name, option_name = name.split(".")
     if (table := _GLOBAL_CONFIG.get(table_name, None)) is None:
         logger.warning(f"missing table `{table_name}`")
-        return None
+        return default
     if (value := table.get(option_name, None)) is None:
         return default
     if option_name == "data_dir":

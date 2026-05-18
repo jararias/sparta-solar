@@ -138,11 +138,14 @@ class TestConfigReset:
         config_file.write_text("[test]\nkey = 'value'")
         mock_get_path.return_value = config_file
         mock_read.return_value = {}
-        
-        config._reset_config_file()
-        
-        assert not config_file.exists()
-        mock_read.assert_called_once()
+
+        # Use patch.object so _reset_config_file's `global _GLOBAL_CONFIG = ...`
+        # assignment is undone when the context exits; otherwise it permanently
+        # replaces the real config with {} for the rest of the test session.
+        with patch.object(config, '_GLOBAL_CONFIG', config._GLOBAL_CONFIG):
+            config._reset_config_file()
+            assert not config_file.exists()
+            mock_read.assert_called_once()
 
 
 class TestShowConfig:

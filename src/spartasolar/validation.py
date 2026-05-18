@@ -36,7 +36,7 @@ class ValidaRegex:
 
     Examples:
         >>> # Validate email addresses
-        >>> email_validator = ValidaRegex(pattern=r"^[\w\.-]+@[\w\.-]+\.\w+$")
+        >>> email_validator = ValidaRegex(pattern=r"^[\\w\\.-]+@[\\w\\.-]+\\.\\w+$")
         >>> email_validator.validate("user@example.com")
         'user@example.com'
         

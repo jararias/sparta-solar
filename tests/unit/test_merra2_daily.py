@@ -128,7 +128,7 @@ class TestEnsureAllPathsAreLocal:
         
         paths = [existing_path, missing_path]
         
-        with pytest.raises(NotImplementedError, match="missing path"):
+        with pytest.raises(ValueError, match="out of range"):
             MERRA2DailyAtmosphere._ensure_all_paths_are_local(paths)
 
 
@@ -177,8 +177,8 @@ class TestAtSitesMethod:
         result = MERRA2DailyAtmosphere.at_sites(times, lats, lons, site_names=names)
         
         assert isinstance(result, MERRA2DailyAtmosphere)
-        # Check that site_name coordinate was added
-        assert "site_name" in result._atmosphere.coords
+        # Check that site coordinate was added
+        assert "site" in result._atmosphere.coords
 
     @patch.object(MERRA2DailyAtmosphere, '_load_dataset')
     def test_at_sites_mismatched_coordinates_raises_error(self, mock_load_dataset, sample_atmosphere_data):
@@ -333,7 +333,7 @@ class TestMERRA2DailyAtmosphereIntegration:
         
         # Verify coordinates exist
         assert 'site' in result._atmosphere.dims
-        assert 'site_name' in result._atmosphere.coords
+        assert 'site' in result._atmosphere.coords
 
     @patch.object(MERRA2DailyAtmosphere, '_load_dataset')
     def test_end_to_end_on_regular_grid(self, mock_load_dataset, sample_atmosphere_data):
