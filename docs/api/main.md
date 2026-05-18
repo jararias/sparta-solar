@@ -1,1 +1,0 @@
-::: spartasolar.interface

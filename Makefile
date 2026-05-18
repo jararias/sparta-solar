@@ -35,6 +35,19 @@ coverage:
 	@uv run genbadge tests -i reports/junit.xml -o badges/tests.svg
 	@echo "Badges generated in badges/"
 
-.PHONY: mkdocs
-mkdocs:
-	@uv run mkdocs serve --open
+.PHONY: docs
+docs:
+	@echo "Building documentation with Zensical..."
+	@uv run zensical build --clean
+	@echo "Documentation built successfully in site/ directory"
+	@attr -s com.dropbox.ignored -V 1 site  # instruct dropbox to ignore the .venv folder
+
+.PHONY: docs-serve
+docs-serve:
+	@echo "Serving documentation locally..."
+	@uv run zensical serve --open
+
+.PHONY: docs-clean
+docs-clean:
+	@echo "Cleaning documentation build..."
+	@rm -rf site/

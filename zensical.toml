@@ -1,5 +1,5 @@
 [project]
-site_name = ""
+site_name = "sparta-solar"
 site_description = "Batteries-included clear-sky solar radiation for solar resource assessment"
 site_url = "https://jararias.github.io/sparta-solar"
 repo_url = "https://github.com/jararias/sparta-solar"
@@ -31,7 +31,7 @@ features = [
 # output = "site"
 
 [project.plugins.mkdocstrings.handlers.python]
-paths = ["src/spartasolar"]
+paths = ["src"]
 inventories = [
     "https://docs.python.org/3/objects.inv",
     "http://pandas.pydata.org/pandas-docs/stable/objects.inv",
