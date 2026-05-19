@@ -1,0 +1,11 @@
+{% if config.theme.logo %}
+  <a href="{{ config.site_url | default(nav.homepage.url, true) | url }}" title="{{ config.site_name | e }}" class="md-logo" data-md-component="logo">
+    <!-- Logotipo para el Modo Claro -->
+    <img src="{{ config.theme.logo | url }}#only-light" alt="logo" style="width: 60px;"/>
+    <!-- Logotipo para el Modo Oscuro -->
+    <img src="{{ 'images/sunny-helmet-white-transparent-recortada.png' | url }}#only-dark" alt="logo" style="width: 60px;"/>
+  </a>
+{% else %}
+  <!-- Mantiene el comportamiento por defecto si no hay un logo definido -->
+  {{ super() }}
+{% endif %}

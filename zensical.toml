@@ -11,18 +11,46 @@ nav = [
     {"Quick Reference" = "quick-reference.md"},
     {"API Reference" = "api.md"},
 ]
+extra_css = ["stylesheets/extra.css"]
 
 [project.theme]
-theme = "material"
-palette.scheme = "default"
-palette.primary = "indigo"
-palette.accent = "orange"
-logo = "images/sunny-helmet-black-transparent.png"
+custom_dir = "overrides"
+logo = "images/sunny-helmet-black-transparent-recortada.png"
 features = [
     "content.code.copy",      # Añade un botón flotante para copiar el código
     "content.code.select",    # Permite al usuario seleccionar rangos de líneas
-    "content.code.annotate"   # Habilita notas explicativas flotantes dentro del código
+    "content.code.annotate",  # Habilita notas explicativas flotantes dentro del código
+    "navigation.footer",      # Include links to the previous and next pages in the footer
 ]
+
+# Palette toggle for automatic mode
+[[project.theme.palette]]
+media = "(prefers-color-scheme)"
+toggle.icon = "lucide/sun-moon"
+toggle.name = "Switch to light mode"
+
+# Palette toggle for light mode
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "indigo"
+accent = "orange"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+# Palette toggle for dark mode
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "indigo"
+accent = "orange"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to system preference"
+
+[[project.theme.social]]
+icon = "fontawesome/solid/envolope"
+link = "mailto:jararias@uma.es"
+name = "Jose A Ruiz-Arias, Universidad de Málaga, Spain"
 
 [project.plugins.mkdocstrings.handlers.python]
 paths = ["src"]
@@ -60,6 +88,8 @@ highlight_theme = "monokai"
 line_numbers = true
 
 [project.markdown_extensions.admonition]
+
+[project.markdown_extensions.footnotes]
 
 [project.markdown_extensions.pymdownx.blocks.caption]
 prepend = true

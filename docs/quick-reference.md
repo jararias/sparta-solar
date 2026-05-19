@@ -8,7 +8,7 @@ A concise cheat-sheet organized by atmospheric data source.
 
 **Module**: `spartasolar.atmosphere.merra2_daily`  
 **Class**: `MERRA2DailyAtmosphere`  
-**Coverage**: Global, 1980–present | **Res.**: 0.5° × 0.625° | **Access**: Hugging Face Hub (cached)
+**Coverage**: Global, 1999–2018 | **Res.**: 0.5° × 0.625° | **Access**: Hugging Face Hub (cached)
 
 ### Configuration keys
 
