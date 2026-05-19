@@ -1,4 +1,4 @@
-"""Unit tests for pysparta.config module.
+"""Unit tests for spartasolar.config module.
 
 Tests cover:
 - Configuration file initialization
@@ -11,13 +11,13 @@ from pathlib import Path
 from unittest.mock import patch
 import tomlkit
 
-from pysparta import config
+from spartasolar import config
 
 
 class TestConfigFileOperations:
     """Test suite for configuration file operations."""
 
-    @patch('pysparta.config.platformdirs.user_config_path')
+    @patch('spartasolar.config.platformdirs.user_config_path')
     def test_get_config_path(self, mock_user_config_path, tmp_path):
         """Test that config path is correctly retrieved."""
         mock_user_config_path.return_value = tmp_path
@@ -25,7 +25,7 @@ class TestConfigFileOperations:
         assert path == tmp_path / "config.toml"
         assert path.name == "config.toml"
 
-    @patch('pysparta.config.get_config_path')
+    @patch('spartasolar.config.get_config_path')
     def test_init_config_file_creates_file(self, mock_get_path, tmp_path):
         """Test that initialization creates the config file."""
         config_file = tmp_path / "config.toml"
@@ -39,7 +39,7 @@ class TestConfigFileOperations:
         assert "[merra2_daily]" in content
         assert "[sunwhere]" in content
 
-    @patch('pysparta.config.get_config_path')
+    @patch('spartasolar.config.get_config_path')
     def test_read_config_options_existing_file(self, mock_get_path, tmp_path):
         """Test reading from an existing config file."""
         config_file = tmp_path / "config.toml"
@@ -130,19 +130,22 @@ class TestConfigOptions:
 class TestConfigReset:
     """Test suite for config reset functionality."""
 
-    @patch('pysparta.config.get_config_path')
-    @patch('pysparta.config._read_config_options')
+    @patch('spartasolar.config.get_config_path')
+    @patch('spartasolar.config._read_config_options')
     def test_reset_config_file(self, mock_read, mock_get_path, tmp_path):
         """Test that reset removes the file and reloads config."""
         config_file = tmp_path / "config.toml"
         config_file.write_text("[test]\nkey = 'value'")
         mock_get_path.return_value = config_file
         mock_read.return_value = {}
-        
-        config._reset_config_file()
-        
-        assert not config_file.exists()
-        mock_read.assert_called_once()
+
+        # Use patch.object so _reset_config_file's `global _GLOBAL_CONFIG = ...`
+        # assignment is undone when the context exits; otherwise it permanently
+        # replaces the real config with {} for the rest of the test session.
+        with patch.object(config, '_GLOBAL_CONFIG', config._GLOBAL_CONFIG):
+            config._reset_config_file()
+            assert not config_file.exists()
+            mock_read.assert_called_once()
 
 
 class TestShowConfig:
@@ -181,7 +184,7 @@ class TestDefaultConfigStructure:
 class TestConfigIntegration:
     """Integration tests for configuration workflow."""
 
-    @patch('pysparta.config.get_config_path')
+    @patch('spartasolar.config.get_config_path')
     def test_full_config_workflow(self, mock_get_path, tmp_path):
         """Test a complete workflow: init, read, set, get."""
         config_file = tmp_path / "config.toml"

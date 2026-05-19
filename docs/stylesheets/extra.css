@@ -1,0 +1,9 @@
+/* Configuración por defecto para el modo claro (esquema default) */
+[data-md-color-scheme="default"] .md-logo img {
+  content: url("../images/sunny-helmet-black-transparent-recortada.png");
+}
+
+/* Intercambio automático al pasar al modo oscuro (esquema slate) */
+[data-md-color-scheme="slate"] .md-logo img {
+  content: url("../images/sunny-helmet-white-transparent-recortada.png");
+}

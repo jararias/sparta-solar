@@ -13,9 +13,9 @@ import xarray as xr
 from loguru import logger
 from zarr.codecs import BloscCodec, BitRound  #, BloscShuffle
 
-from pysparta import set_logger
-from pysparta.atmoslib._base import make_cf_compliant
-from pysparta.atmoslib.conversions import pwater_in_cm_to_kg_m2, ozone_in_cm_to_kg_m2
+from spartasolar import set_logger
+from spartasolar.atmoslib._base import make_cf_compliant
+from spartasolar.atmoslib.conversions import pwater_in_cm_to_kg_m2, ozone_in_cm_to_kg_m2
 
 set_logger("INFO")
 
@@ -119,6 +119,8 @@ def export_blosc2_to_zarr_daily(blosc2_path: Path, zarr_path: Path, year: int) -
     logger.success("units conversions applied")
 
     ds = make_cf_compliant(ds)
+    ds.attrs["references"] = "doi:10.5067/KLICLTZ8EM9D, doi:10.5067/Q9QMY5PBNV1T, doi:10.5067/VJAFPLI1CSIV"
+
     logger.success("dataset made CF compliant")
 
     if not outpath.parent.exists():
@@ -155,6 +157,6 @@ def export_blosc2_to_zarr_daily(blosc2_path: Path, zarr_path: Path, year: int) -
 if __name__ == "__main__":
 
     year = int(sys.argv[1])  # 2016
-    blosc2_path = platformdirs.user_data_path("pysparta/merra2-daily-blosc2")
-    zarr_path = platformdirs.user_data_path("pysparta/merra2-daily")
+    blosc2_path = platformdirs.user_data_path("sparta-solar/merra2-daily-blosc2")
+    zarr_path = platformdirs.user_data_path("sparta-solar/merra2-daily")
     data = export_blosc2_to_zarr_daily(blosc2_path, zarr_path, year)

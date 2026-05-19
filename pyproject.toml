@@ -3,58 +3,70 @@ requires = ["uv-build>=0.7.19"]
 build-backend = "uv_build"
 
 [project]
-name = "pysparta"
+name = "sparta-solar"
 version = "0.1.0"
 description = "Solar PArameterization for the Radiative Transfer of the Atmosphere"
 readme = "README.md"
 requires-python = ">=3.12"
 authors = [{name = "Jose A Ruiz-Arias", email = "jararias@uma.es"}]
 license = {text = "CC BY-NC-SA 4.0"}
+keywords = [
+    "solar radiation",
+    "clear-sky",
+    "radiative transfer",
+    "MERRA-2",
+    "CAMS Radiation Service",
+    "atmospheric modeling",
+    "solar energy",
+]
 classifiers = [
+    "Development Status :: 3 - Alpha",
     "Natural Language :: English",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
+    "License :: Other/Proprietary License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+    "Topic :: Scientific/Engineering :: Physics",
 ]
-urls = {Homepage = "https://github.com/jararias/pysparta"}
-
-
 dependencies = [
-    "blosc2>=4.1.2",
     "dask[complete]>=2026.3.0",
+    "earthengine-api>=1.7.26",
+    "huggingface-hub>=1.15.0",
     "loguru>=0.7.3",
     "netcdf4>=1.7.4",
-    "numpy>=2.4.4",
     "numpy>=2.4.4",
     "pandas>=3.0.2",
     "platformdirs>=4.9.6",
     "pyarrow>=24.0.0",
     "scipy>=1.17.1",
-    "sunwhere",
+    "sunwhere>=1.4.0",
     "tomlkit>=0.15.0",
     "xarray>=2026.4.0",
     "zarr>=3.2.1",
 ]
 
+[project.urls]
+Homepage = "https://jararias.github.io/sparta-solar"
+Documentation = "https://jararias.github.io/sparta-solar"
+Repository = "https://github.com/jararias/sparta-solar"
+"Bug Tracker" = "https://github.com/jararias/sparta-solar/issues"
+Changelog = "https://github.com/jararias/sparta-solar/blob/main/CHANGELOG.md"
+
 [project.optional-dependencies]
 docs = [
-    "mkdocs>=1.6.1",
-    "mkdocs-material>=9.7.6",
     "mkdocstrings[python]>=1.0.4",
-    "pymdown-extensions>=10.21.2",
-    "zensical>=0.0.41",
-]
-
-merra2-daily = [
-    "huggingface-hub>=1.14.0",
-]
-
-merra2-gee = [
-    "earthengine-api>=1.7.26",
+    "pymdown-extensions>=10.21.3",
+    "zensical>=0.0.42",
 ]
 
 [dependency-groups]
 dev = [
+    "blosc2>=4.2.0",
+    "genbadge[all]>=1.1.3",
     "geoviews>=1.15.1",
     "hvplot>=0.12.2",
     "ipython>=9.13.0",
@@ -73,19 +85,19 @@ dev = [
 # uv-build solo incluye archivos .py por defecto a menos que se especifique lo contrario
 exclude = ["*"] 
 
+[tool.uv.build-backend]
+module-name = "spartasolar"
+
 # Equivale a tool.setuptools.package-data
 # Aquí incluimos explícitamente los archivos de datos deseados
 include = [
-    "pysparta/atmoslib/merra2_lta_data/*.nc",
+    "spartasolar/atmoslib/merra2_lta_data/*.nc",
 ]
 
 [tool.uv-build.targets.wheel]
-# Equivale a package-dir = {"" = "."} y packages.find (namespaces = true) en setuptools
-# uv-build busca automáticamente paquetes con __init__.py o directorios de namespaces
-packages = ["pysparta"]
-
-[tool.uv.sources]
-sunwhere = { git = "https://github.com/jararias/sunwhere" }
+# El paquete y el módulo tienen el mismo nombre
+packages = ["spartasolar"]
+package-dir = {"" = "src"}
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -103,7 +115,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["src/pysparta"]
+source = ["src/spartasolar"]
 omit = [
     "*/tests/*",
     "*/__pycache__/*",
@@ -111,6 +123,7 @@ omit = [
 ]
 
 [tool.coverage.report]
+show_missing = true
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
@@ -120,3 +133,9 @@ exclude_lines = [
     "if TYPE_CHECKING:",
     "@abstractmethod",
 ]
+
+[tool.coverage.xml]
+output = "reports/coverage.xml"
+
+[tool.coverage.json]
+output = "reports/coverage.json"
