@@ -16,7 +16,13 @@ radiative transfer model, with integrated access to multiple atmospheric databas
 ## Quick install
 
 ```bash
-pip install git+https://github.com/jararias/sparta-solar
+pip install sparta-solar
+```
+
+or with [uv](https://docs.astral.sh/uv/):
+
+```bash
+uv add sparta-solar
 ```
 
 ## Quick example
