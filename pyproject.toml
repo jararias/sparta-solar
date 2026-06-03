@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "sparta-solar"
-version = "0.1.0"
+version = "0.2.0"
 description = "Solar PArameterization for the Radiative Transfer of the Atmosphere"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -43,7 +43,7 @@ dependencies = [
     "platformdirs>=4.9.6",
     "pyarrow>=24.0.0",
     "scipy>=1.17.1",
-    "sunwhere>=1.4.0",
+    "sunwhere>=1.4.1",
     "tomlkit>=0.15.0",
     "xarray>=2026.4.0",
     "zarr>=3.2.1",

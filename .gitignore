@@ -49,14 +49,13 @@ site/
 .nox/
 .cache/
 test-results/
+reports/
+htmlcov/
+tox/reports/
 pytest-report.html
 junit-results.xml
-
-# Code coverage
 .coverage
 .coverage.*
+junit.xml
 coverage.xml
-htmlcov/
 nosetests.xml
-tox/reports/
-

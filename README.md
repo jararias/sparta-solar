@@ -3,9 +3,11 @@
 **Solar PArameterization of the Radiative Transfer of the Atmosphere**
 
 [![Python Version](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org/downloads/)
-[![Tests](badges/tests.svg)](badges/tests.svg)
-[![Coverage](badges/coverage.svg)](badges/coverage.svg)
-[![License](https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-green.svg)](LICENSE)
+[![Tests](docs/images/tests-badge.svg)](docs/images/tests-badges.svg)
+![Tests](https://raw.githubusercontent.com/jararias/sparta-solar/main/docs/images/tests-badge.svg)
+[![Coverage](docs/images/coverage-badge.svg)](docs/images/coverage-badge.svg)
+![Coverage](https://raw.githubusercontent.com/jararias/sparta-solar/main/docs/images/coverage-badge.svg)
+[![License](https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
 A Python library for computing clear-sky solar irradiance using the SPARTA
 radiative transfer model, with integrated access to multiple atmospheric databases

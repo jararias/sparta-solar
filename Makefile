@@ -1,4 +1,8 @@
 
+-include .env
+export UV_PUBLISH_TOKEN
+export UV_PUBLISH_TEST_TOKEN
+
 .PHONY: ipython3
 ipython3:
 	@uv run ipython --profile-dir=.ipython
@@ -19,21 +23,13 @@ clean:
 	@find . -name "__pycache__" -print0 | xargs -0 -I {} /bin/rm -rf "{}"
 
 .PHONY: tests
-tests:
-	@uv run pytest tests/unit/ -v
-
-.PHONY: coverage
 coverage:
-	@mkdir -p reports badges
-	@uv run pytest tests/unit/ \
-		--cov \
-		--cov-report=term-missing \
-		--cov-report=xml:reports/coverage.xml \
-		--junitxml=reports/junit.xml \
-		-q
-	@uv run genbadge coverage -i reports/coverage.xml -o docs/images/badges/coverage.svg
-	@uv run genbadge tests -i reports/junit.xml -o docs/images/badges/tests.svg
-	@echo "Badges generated in docs/images/badges/"
+	@uv run coverage run -m pytest -v --junit-xml=junit.xml tests/unit/
+	@uv run coverage xml -o coverage.xml
+	@uv run genbadge tests -i junit.xml -o docs/images/tests-badge.svg
+	@uv run genbadge coverage -i coverage.xml -o docs/images/coverage-badge.svg
+	@echo "Badges generated in docs/images/*-badge.svg"
+	@rm -f junit.xml coverage.xml .coverage
 
 .PHONY: docs
 docs:
@@ -51,3 +47,15 @@ docs-serve:
 docs-clean:
 	@echo "Cleaning documentation build..."
 	@rm -rf site/
+
+.PHONY: publish
+publish:
+	@test -n "$(UV_PUBLISH_TOKEN)" || (echo "Error: UV_PUBLISH_TOKEN no está definido (créalo en .env)"; exit 1)
+	@uv build
+	@uv publish
+
+.PHONY: publish-test
+publish-test:
+	@test -n "$(UV_PUBLISH_TEST_TOKEN)" || (echo "Error: UV_PUBLISH_TEST_TOKEN no está definido (créalo en .env)"; exit 1)
+	@uv build
+	@uv publish --publish-url https://test.pypi.org/legacy/ --token $(UV_PUBLISH_TEST_TOKEN)
