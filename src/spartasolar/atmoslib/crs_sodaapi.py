@@ -69,7 +69,7 @@ from loguru import logger
 from scipy.interpolate import interp1d
 
 from ._base import BaseAtmosphere, build_atmosphere_of_sites
-from .conversions import ozone_in_du_to_kg_m2
+from .helpers import ensure_tz_aware_datetime_index, ozone_in_du_to_kg_m2
 from ..config import get_option, get_config_path
 from ..validation import Latitude, Longitude, SodaStream, SodaTimeStep, validate_type
 
@@ -107,6 +107,134 @@ def get_database_path() -> Path:
         data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
 
+def list_crs_soda_cache() -> list[Path]:
+    """List all cached CRS SODA parquet files.
+
+    Scans the cache directory for files matching the CRS SODA naming pattern.
+
+    Returns
+    -------
+    list[Path]
+        List of cached parquet file paths
+
+    Examples
+    --------
+    >>> from spartasolar.atmoslib.crs_sodaapi import list_crs_soda_cache
+    >>>
+    >>> cached_files = list_crs_soda_cache()
+    >>> for file in cached_files:
+    ...     print(file.name)
+    """
+    database_path = get_database_path()
+    return sorted(database_path.glob("crs_soda_mcclear_v*.parquet"))
+
+
+def load_crs_soda_cache(
+    year: int,
+    latitude: float,
+    longitude: float,
+    version: str = "1.0.0"
+) -> pd.DataFrame:
+    """Load cached CRS SODA data for a specific site and year.
+
+    Parameters
+    ----------
+    year : int
+        Year of the data to load
+    latitude : float
+        Latitude in degrees North [-90, 90]
+    longitude : float
+        Longitude in degrees East [-180, 180]
+    version : str
+        API version string (e.g., "1.0.0")
+
+    Returns
+    -------
+    pd.DataFrame
+        Cached atmospheric data for the specified site and year
+
+    Raises
+    ------
+    FileNotFoundError
+        If no cached file is found for the specified parameters
+
+    Examples
+    --------
+    >>> from spartasolar.atmoslib.crs_sodaapi import load_crs_soda_cache
+    >>>
+    >>> # Load cached data for a specific site and year
+    >>> data = load_crs_soda_cache(2020, 36.72, -4.42, "1.0.0")
+    >>> print(data.head())
+    """
+    path = CRSSODAAtmosphere._get_filename(year, latitude, longitude, version)
+    if not path.exists():
+        raise FileNotFoundError(f"No cached CRS SODA data found for {latitude:.4f}N, {longitude:.4f}E in {year} (version {version})")
+    return pd.read_parquet(path)
+
+
+def clear_crs_soda_cache(
+    sites: tuple[float, float] | list[tuple[float, float]] | None = None,
+) -> list[Path]:
+    """Delete cached CRS SODA parquet files.
+
+    Parameters
+    ----------
+    sites : tuple[float, float] or list[tuple[float, float]] or None, optional
+        Site or list of sites as ``(latitude, longitude)`` in degrees.
+        - If ``None`` (default), all cached CRS SODA parquet files are deleted.
+        - If one or more sites are provided, only cache files matching those
+          coordinates are deleted (all available years/versions for each site).
+
+    Returns
+    -------
+    list[Path]
+        List of deleted parquet file paths.
+
+    Examples
+    --------
+    >>> from spartasolar.atmoslib.crs_sodaapi import clear_crs_soda_cache
+    >>>
+    >>> # Delete all cached CRS SODA parquet files
+    >>> deleted = clear_crs_soda_cache()
+    >>> len(deleted)
+    12
+    >>>
+    >>> # Delete files for one site (all years/versions)
+    >>> clear_crs_soda_cache((40.4168, -3.7038))
+    >>>
+    >>> # Delete files for multiple sites
+    >>> clear_crs_soda_cache([
+    ...     (40.4168, -3.7038),
+    ...     (36.7213, -4.4214),
+    ... ])
+    """
+    database_path = get_database_path()
+
+    if sites is None:
+        files_to_delete = list(database_path.glob("crs_soda_mcclear_v*.parquet"))
+    else:
+        if isinstance(sites, tuple):
+            site_list = [sites]
+        else:
+            site_list = list(sites)
+
+        files_to_delete = []
+        for latitude, longitude in site_list:
+            latitude_str = f"{float(latitude)*1e4:.0f}"
+            latitude_str = latitude_str[1:] + "S" if latitude_str.startswith("-") else latitude_str + "N"
+            longitude_str = f"{float(longitude)*1e4:.0f}"
+            longitude_str = longitude_str[1:] + "W" if longitude_str.startswith("-") else longitude_str + "E"
+            pattern = f"crs_soda_mcclear_v*_{latitude_str}_{longitude_str}_*.parquet"
+            files_to_delete.extend(database_path.glob(pattern))
+
+    deleted_files: list[Path] = []
+    for file_path in {path.resolve() for path in files_to_delete}:
+        if file_path.exists() and file_path.is_file():
+            file_path.unlink()
+            deleted_files.append(file_path)
+
+    return sorted(deleted_files)
+
 
 class CRSSODAAtmosphere(
     BaseAtmosphere,
@@ -123,8 +251,10 @@ class CRSSODAAtmosphere(
     See module documentation for examples.
     """
 
+    CRS_VERSION: str = "1.0.0"
+
     @classmethod
-    def get_filename(cls, year: int, latitude: float, longitude: float, version: str) -> Path:
+    def _get_filename(cls, year: int, latitude: float, longitude: float, version: str | None = None) -> Path:
         r"""Generate the cache filename for CRS SODA data.
 
         Constructs a standardized filename pattern for cached data including
@@ -149,7 +279,7 @@ class CRSSODAAtmosphere(
 
         Examples
         --------
-        >>> path = CRSSODAAtmosphere.get_filename(2023, 40.4168, -3.7038, "1.0.0")
+        >>> path = CRSSODAAtmosphere._get_filename(2023, 40.4168, -3.7038, "1.0.0")
         >>> print(path.name)
         # "crs_soda_mcclear_v1.0.0_404168N_37038W_2023.parquet"
 
@@ -160,18 +290,24 @@ class CRSSODAAtmosphere(
         - Signs replaced by suffixes: 'N'/'S' for latitude, 'E'/'W' for longitude
         - Example: latitude -12.34 becomes "123400S"
         """
+
+        def number_to_string(coord_value: float, is_latitude: bool) -> str:
+            coord_str = f"{abs(float(coord_value)*1e4):.0f}"
+            suffix = "S" if is_latitude and coord_value < 0 else "N" if is_latitude else "W" if coord_value < 0 else "E"
+            return coord_str + suffix
+
         filename_pattern = "crs_soda_mcclear_v{version}_{latitude}_{longitude}_{year}.parquet"
-        latitude_str = f"{float(latitude)*1e4:.0f}"
-        latitude_str = latitude_str[1:]+"S" if latitude_str.startswith("-") else latitude_str + "N"
-        longitude_str = f"{float(longitude)*1e4:.0f}"
-        longitude_str = longitude_str[1:]+"W" if longitude_str.startswith("-") else longitude_str + "E"
-        filename = filename_pattern.format(version=version, latitude=latitude_str, longitude=longitude_str, year=year)
+        filename = filename_pattern.format(
+            version=version or cls.CRS_VERSION,
+            latitude=number_to_string(latitude, is_latitude=True),
+            longitude=number_to_string(longitude, is_latitude=False),
+            year=year)
         return cls.database_path / filename
 
     @classmethod
     def at_site(
         cls,
-        times: pd.DatetimeIndex,
+        times: pd.DatetimeIndex | np.ndarray[tuple[int], np.dtype[np.datetime64]],
         latitude: float,
         longitude: float,
         site_name: str | None = None,
@@ -184,7 +320,7 @@ class CRSSODAAtmosphere(
         Parameters
         ----------
         times : pd.DatetimeIndex
-            Time stamps for data retrieval (UTC)
+            Time stamps for data retrieval
         latitude : float
             Latitude in degrees North [-90, 90]
         longitude : float
@@ -219,7 +355,6 @@ class CRSSODAAtmosphere(
         - Temporal interpolation uses quadratic splines
         """
 
-        version: str = "1.0.0"
         save_csv: bool = False  # for debugging and reproducibility. The csv files are saved in the same directory as the parquet files, with the same name but .csv extension instead of .parquet
 
         latitude = validate_type(latitude, Latitude)
@@ -238,11 +373,11 @@ class CRSSODAAtmosphere(
                 user_email=user_email,
                 time_step="PT01M",
                 stream="mcclear",
-                version=version,
+                version=cls.CRS_VERSION,
                 timeout=30,
                 to_csv=path.with_suffix(".csv") if save_csv else None)  # save the raw response as csv for debugging and reproducibility
 
-            data = cls.distill_crude_data(data, metadata)
+            data = cls._distill_crude_data(data, metadata)
             logger.debug(f"{data.head()=}")
             data.to_parquet(path)
             logger.success(f"data downloaded and archived: <blue>{path.name}</blue>")
@@ -250,33 +385,34 @@ class CRSSODAAtmosphere(
         # load data from one year before and one year after the requested times_utc, but
         # clipping the years on 2004 and the current year
         paths = []
-        years = cls._infer_years_from_times(times)
+        times_utc = ensure_tz_aware_datetime_index(times, utc=True)
+        years = cls._infer_years_from_times(times_utc)
         for year in sorted(years):
-            if not (path := cls.get_filename(year, latitude, longitude, version)).exists():
+            if not (path := cls._get_filename(year, latitude, longitude)).exists():
                 fetch_and_distill_and_archive(year, path)
             paths.append(path)
         logger.debug([path.as_posix() for path in paths])
-        data = pd.read_parquet(paths)
+        data = pd.read_parquet(paths)  # WARNING: times in data are UTC !!!
 
         # interpolate to times_utc
-        x = times.astype("datetime64[s]").to_numpy().astype(float)
-        xi = data.times_utc.astype("datetime64[s]").to_numpy().astype(float)
+        x = times_utc.to_numpy(dtype="datetime64[s]").astype(float)
+        xi = data.times_utc.to_numpy(dtype="datetime64[s]").astype(float)
         data_i = data.drop(columns=["times_utc", "albedo"])
         y = interp1d(xi, data_i.values, kind="quadratic", axis=0)(x)
         y_dict = {key: value for key, value in zip(data_i.columns, y.T)}
         y_dict["albedo"] = interp1d(xi, data.albedo.values, kind="linear", axis=0)(x)
-        data_interp = pd.DataFrame({"times": times} | y_dict)
+        data_interp = pd.DataFrame({"times": times_utc} | y_dict)
 
         global_attrs = {
             "title:": "Hourly CRS SODA McClear dataset for SPARTA",
             "source": "WPS SODA API, https://www.soda-pro.com/web-services/radiation/cams-mcclear",
-            "version": version,
+            "version": cls.CRS_VERSION,
             "references": "https://confluence.ecmwf.int/display/CKB/CAMS+solar+radiation+time-series%3A+data+documentation",
         }
 
         obj = cls()
         obj._atmosphere = build_atmosphere_of_sites(
-            times=times,
+            times=times,  # WARNING: return the input times, even if they are not tz-aware!
             latitude=latitude,
             longitude=longitude,
             constituents=data_interp.drop(columns=["times"]),
@@ -285,17 +421,16 @@ class CRSSODAAtmosphere(
         return obj
 
     @staticmethod
-    def _infer_years_from_times(times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex) -> list[int]:
-        the_times = times if isinstance(times, pd.DatetimeIndex) else pd.to_datetime(times)
-        years = set(the_times.year)
-        if (the_times[0] - pd.to_datetime(f"{min(years)}-01-01 00:00:00")) < pd.Timedelta(3, "h"):
+    def _infer_years_from_times(times_utc: pd.DatetimeIndex) -> list[int]:
+        years = set(times_utc.year)
+        if (times_utc[0] - pd.to_datetime(f"{min(years)}-01-01 00:00:00", utc=True)) < pd.Timedelta(3, "h"):
             years.add(min(years)-1)
-        if (pd.to_datetime(f"{max(years)+1}-01-01 00:00:00") - the_times[-1]) < pd.Timedelta(3, "h"):
+        if (pd.to_datetime(f"{max(years)+1}-01-01 00:00:00", utc=True) - times_utc[-1]) < pd.Timedelta(3, "h"):
             years.add(max(years)+1)
         return sorted(years)
 
     @staticmethod
-    def distill_crude_data(data: pd.DataFrame, metadata: list[str]) -> pd.DataFrame:
+    def _distill_crude_data(data: pd.DataFrame, metadata: list[str]) -> pd.DataFrame:
         r"""Refine and enrich raw CRS data for clear-sky modeling.
 
         Performs post-processing on SODA API data:
@@ -497,6 +632,11 @@ def fetch_crs_data_from_soda_api(
         "username": user_email.replace("@", "%2540")}
     data_inputs = ";".join([key + "=" + value for key, value in data_inputs.items()])
 
+    logger.info(f"fetching CRS SODA data for {latitude:.4f}N, {longitude:.4f}E, "
+                f"from {date_begin} to {date_end} with summarization={summarization} "
+                f"and stream={stream}")
+    logger.debug(f"{data_inputs=}")
+
     parameters = {
         "Service": "WPS",
         "Request": "Execute",
@@ -508,6 +648,7 @@ def fetch_crs_data_from_soda_api(
     base_url = "https://api.soda-solardata.com/service/wps"
     url = base_url + "?DataInputs=" + data_inputs
     logger.debug(f"{url=}")
+
     res = requests.get(url, params=parameters, timeout=timeout)
 
     if res.ok:

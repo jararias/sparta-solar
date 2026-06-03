@@ -1,7 +1,3 @@
-<!-- <figure markdown="span">
-![header](images/sunny-helmet-black-transparent.png){ width="250" align=left loading=lazy }
-<strong>Batteries-included clear-sky solar radiation for solar resource assessment</strong>
-</figure> -->
 
 <!-- the caption element below is a workaround to center the image -->
 ![image title](images/sunny-helmet-black-transparent-recortada.png#only-light){ width="400" }
@@ -11,14 +7,9 @@
 
 # sparta-solar: A clear-sky solar radiation model, batteries included
 
-<!-- <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
-  <img src="images/sunny-helmet-black-transparent-recortada.png" width="250" alt="Logo" style="margin: 0;">
-  <h1 style="margin: 0;">SPARTA Solar: A batteries-included clear-sky solar radiation model</h3>
-</div> -->
-
 ![Python version](https://img.shields.io/badge/python-3.12%2B-blue.svg)
-[![Tests](images/badges/tests.svg)](images/badges/tests.svg)
-[![Coverage](images/badges/coverage.svg)](images/badges/coverage.svg)
+![Tests](images/tests-badge.svg)
+![Coverage](images/coverage-badge.svg)
 [![License](https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
 **sparta-solar** is a Python library for computing **clear-sky solar irradiance** at the surface using the *Solar Parameterization of the Radiative Transfer of the Atmosphere* ([SPARTA](http://hdl.handle.net/10630/28011)) model. It integrates seamlessly with multiple atmospheric databases to supply the aerosol, water vapour, ozone, and pressure inputs that the radiative transfer model requires.

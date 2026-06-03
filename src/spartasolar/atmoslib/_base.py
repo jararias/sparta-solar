@@ -17,7 +17,7 @@ import sunwhere
 import xarray as xr
 from loguru import logger
 
-from .conversions import pwater_in_kg_m2_to_cm, ozone_in_kg_m2_to_cm
+from .helpers import pwater_in_kg_m2_to_cm, ozone_in_kg_m2_to_cm
 from .. import modlib, config
 from ..validation import Latitude, Longitude, Model, validate_type
 
@@ -300,7 +300,7 @@ def validate_site_names(
 
 
 def build_atmosphere_of_sites(
-    times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex,
+    times: np.ndarray[tuple[int], np.dtype[np.datetime64]] | pd.DatetimeIndex,
     latitude: Sequence[float] | float,
     longitude: Sequence[float] | float,
     constituents: dict[str, np.ndarray[tuple[int, int], float]],   # shape: (time, site)
@@ -357,9 +357,6 @@ def build_atmosphere_of_sites(
         raise ValueError(f"incompatitble latitude (of length {len(latitude)}) and longitude (of "
                             f"length {len(longitude)}). They must have the same length")
 
-    # parse datetimes, explicitly set them to UTC and remove timezone info (if any)
-    times = pd.to_datetime(times, utc=True).tz_localize(tz=None)
-
     n_times = len(times)
     n_sites = len(latitude)
 
@@ -395,7 +392,7 @@ def build_atmosphere_of_sites(
 
 
 def build_atmosphere_on_regular_grid(
-    times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex,
+    times: np.ndarray[tuple[int], np.dtype[np.datetime64]] | pd.DatetimeIndex,
     latitude: Sequence[float],
     longitude: Sequence[float],
     constituents: dict[str, np.ndarray[float]],
@@ -443,9 +440,6 @@ def build_atmosphere_on_regular_grid(
 
     latitude = np.asarray([validate_type(lat, Latitude) for lat in latitude], dtype=float).reshape(-1)
     longitude = np.asarray([validate_type(lon, Longitude) for lon in longitude], dtype=float).reshape(-1)
-
-    # parse datetimes, explicitly set them to UTC and remove timezone info (if any)
-    times = pd.to_datetime(times, utc=True).tz_localize(tz=None)
 
     n_times = len(times)
     n_lats = len(latitude)
@@ -556,7 +550,7 @@ class BaseAtmosphere(metaclass=abc.ABCMeta):
     def compute(
         self,
         model: Model = "SPARTA",
-        include_atmosphere: bool = False,
+        include_atmosphere: bool = False,  # TODO: currently ignored
         model_kwargs: dict | None = None,
     ) -> xr.Dataset:
         """Compute clear-sky solar radiation using a radiative transfer model.
@@ -627,7 +621,8 @@ class BaseAtmosphere(metaclass=abc.ABCMeta):
         # compute solar geometry...
         sw_eval = sunwhere.regular_grid if is_regular_grid else sunwhere.sites
         solpos = sw_eval(
-            self.dataset.time.values,
+            # self.dataset.time.values,  # WARNING: this returns a utc tz-naive numpy array of dtype datetime64[ns] !!!
+            self.dataset.indexes["time"],  # NOTE: with `indexes` we get a pandas DatetimeIndex with tz info preserved!
             latitude=self.dataset.lat.values,
             longitude=self.dataset.lon.values,
             algorithm=config.get_option("sunwhere.algorithm", default="psa"),
@@ -668,7 +663,7 @@ class BaseAtmosphere(metaclass=abc.ABCMeta):
         # encapsulate the result in a CF-compliant xarray Dataset
         if is_regular_grid:
             return build_atmosphere_on_regular_grid(
-                times=self.dataset.time.values,
+                times=self.dataset.indexes["time"],
                 latitude=self.dataset.lat.values,
                 longitude=self.dataset.lon.values,
                 constituents=result,
@@ -679,7 +674,7 @@ class BaseAtmosphere(metaclass=abc.ABCMeta):
             n_sites = self.dataset.sizes["site"]
             site_names = validate_site_names(site_values, n_sites)
             return build_atmosphere_of_sites(
-                times=self.dataset.time.values,
+                times=self.dataset.indexes["time"],
                 latitude=self.dataset.lat.values,
                 longitude=self.dataset.lon.values,
                 constituents=result,

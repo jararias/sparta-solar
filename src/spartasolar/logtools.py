@@ -1,34 +1,24 @@
-r"""Logging Configuration Utilities.
 
-This module provides custom formatting and initialization for Loguru-based 
-logging. It includes level-aware message formatting (icons, colors, and 
-metadata) and seamless integration with Python's standard `warnings` module.
-"""
+"""Logging format helpers used by spartasolar logging setup."""
 
 import sys
-import warnings
 
 from loguru import logger
 
 
 def get_message_format(with_mp: bool = False):
-    """Generates a dynamic, level-aware log message format.
+    """Build a loguru format callable with level-aware styling.
 
-    This function returns a callable that Loguru uses to format each record.
-    The format adapts based on the severity level:
-    - **DEBUG**: Shows function names in green.
-    - **WARNING**: Highlights the message in yellow.
-    - **INFO/SUCCESS**: Clean output with level icons.
-    - **Exception**: Automatically appends stack traces if present.
+    Parameters
+    ----------
+    with_mp : bool, default False
+        If ``True``, include process name to help identify multi-process logs.
 
-    Args:
-        with_mp: If True, includes the process name in the log prefix. 
-            Useful for multiprocessing debugging.
-
-    Returns:
-        Callable: A function that takes a `record` and returns a format string.
+    Returns
+    -------
+    Callable[[dict], str]
+        Formatter callable compatible with ``logger.add(format=...)``.
     """
-
     def level_aware_format(record):
         # see: https://loguru.readthedocs.io/en/stable/api/logger.html#record
         level_icon = "<lvl>{level.icon} {level:<7}</lvl>"
@@ -50,41 +40,64 @@ def get_message_format(with_mp: bool = False):
         return msg_format + "\n{exception}"
     return level_aware_format
 
+def filtrar_logs(filtros: list[str] | None = None):
+    """Create a filter function to suppress noisy namespaces.
 
-def set_logger(enable: bool = True, capture_warnings: bool = True, **kwargs):
-    """Configures and activates the global logger for the library.
+    Parameters
+    ----------
+    filtros : list[str] or None, default None
+        Module name prefixes to filter. Matching records are only kept when
+        severity is ERROR or higher.
 
-    This is the main entry point to enable logging in `spartasolar`. It removes 
-    the default Loguru handler and sets up a customized one pointing to 
-    `sys.stderr`.
-
-    Args:
-        enable: If False, disables all logs for the 'spartasolar' namespace.
-        capture_warnings: If True, redirects Python's `warnings.showwarning` 
-            to the logger, ensuring consistency across all alerts.
-        **kwargs: Additional arguments passed directly to `logger.add()`, 
-            allowing overrides of `sink`, `level`, `format`, etc.
-
-    Example:
-        >>> from spartasolar.logtools import set_logger
-        >>> set_logger(level="DEBUG", with_mp=True)
+    Returns
+    -------
+    Callable[[dict], bool]
+        Predicate suitable for ``logger.add(filter=...)``.
     """
+    def filtro(record):
+        if any([record["name"].startswith(name) for name in filtros or []]):
+            return record["level"].no >= logger.level("ERROR").no  # only pass if is an ERROR or more severe
+        return True  # any other will pass through
+    return filtro
 
-    # if enable:
+def enable_logger(name: str | None = None, with_mp: bool = False, filtros: list[str] | None = None, **kwargs):
+    """Configure and enable package logging.
+
+    Parameters
+    ----------
+    name : str or None, default None
+        Logger namespace to enable explicitly. If ``None``, enables ``__main__``.
+    with_mp : bool, default False
+        Enable multi-process-friendly logging options.
+    filtros : list[str] or None, default None
+        Prefixes to filter via :func:`filtrar_logs`.
+    **kwargs : Any
+        Extra keyword arguments forwarded to ``logger.add``.
+
+    Notes
+    -----
+    Existing handlers are removed before installing the new one.
+
+    Examples
+    --------
+    >>> from spartasolar.logtools import enable_logger
+    >>> enable_logger("spartasolar", level="INFO")
+    """
+    global logger
+    logger.remove()  # Remove the default handler.
     default_kwargs = dict(
         sink=sys.stderr,
         level="INFO",
-        format=get_message_format(),
+        format=get_message_format(with_mp=with_mp),
         colorize=True,
+        enqueue=with_mp,
+        filter=filtrar_logs(filtros or []),
     )
-    logger.remove()
     logger.add(**(default_kwargs | (kwargs or {})))
+    logger = logger.opt(colors=True)
+    logger.enable(name or "__main__")
     logger.enable("spartasolar")
-    if capture_warnings:
-        def loguru_shows_warnings(message, category, filename, lineno, *args, **kwargs):
-            logger.opt(depth=2).warning(f"{category.__name__}: {message}")
-        warnings.showwarning = loguru_shows_warnings
-    # else:
-    #     logger.disable("spartasolar")
 
-
+def disable_logger():
+    """Disable logging for the spartasolar namespace."""
+    logger.disable("spartasolar")

@@ -2,10 +2,8 @@
 
 **Solar PArameterization of the Radiative Transfer of the Atmosphere**
 
-[![Python Version](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org/downloads/)
-[![Tests](docs/images/tests-badge.svg)](docs/images/tests-badges.svg)
+![Python Version](https://img.shields.io/badge/python-3.12%2B-blue)
 ![Tests](https://raw.githubusercontent.com/jararias/sparta-solar/main/docs/images/tests-badge.svg)
-[![Coverage](docs/images/coverage-badge.svg)](docs/images/coverage-badge.svg)
 ![Coverage](https://raw.githubusercontent.com/jararias/sparta-solar/main/docs/images/coverage-badge.svg)
 [![License](https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 

@@ -98,7 +98,7 @@ class CustomAtmosphere(
     @classmethod
     def at_sites(
         cls,
-        times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex,
+        times: np.ndarray[tuple[int], np.dtype[np.datetime64]] | pd.DatetimeIndex,
         latitude: Sequence[float] | float,
         longitude: Sequence[float] | float,
         constituents: dict[str, np.ndarray[tuple[int, int], float]],  # shape: (time, site)

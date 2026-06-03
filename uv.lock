@@ -2879,7 +2879,7 @@ wheels = [
 
 [[package]]
 name = "sparta-solar"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "dask", extra = ["complete"] },
@@ -2936,7 +2936,7 @@ requires-dist = [
     { name = "pyarrow", specifier = ">=24.0.0" },
     { name = "pymdown-extensions", marker = "extra == 'docs'", specifier = ">=10.21.3" },
     { name = "scipy", specifier = ">=1.17.1" },
-    { name = "sunwhere", specifier = ">=1.4.0" },
+    { name = "sunwhere", specifier = ">=1.4.1" },
     { name = "tomlkit", specifier = ">=0.15.0" },
     { name = "xarray", specifier = ">=2026.4.0" },
     { name = "zarr", specifier = ">=3.2.1" },
@@ -2977,7 +2977,7 @@ wheels = [
 
 [[package]]
 name = "sunwhere"
-version = "1.4.0"
+version = "1.4.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "loguru" },
@@ -2986,9 +2986,9 @@ dependencies = [
     { name = "pandas" },
     { name = "xarray" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1e/b6/5dd60b49ddf014dc749c3b44f53b60ae850b7563ce9e56e3c82c2fe0cfeb/sunwhere-1.4.0.tar.gz", hash = "sha256:55497ab6f2d21637e7bf02b1a3353edea2d0b8aa3a62fbfec4343e0640ede0bd", size = 45653, upload-time = "2026-05-16T20:27:38.981Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bb/4b/c0b7035b41a005637d84e74dbcb50abe509b3e8574ba4c0cfee35a204d4c/sunwhere-1.4.1.tar.gz", hash = "sha256:beab84faa0c37d8d5078b03a2d0e91edad5868cd1b457d6a2681e091d5863f40", size = 46950, upload-time = "2026-06-02T17:36:43.76Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e1/da/16cb69dc3d0a42519e7b6b1a47f292b7dfc9a46c303b4fddf1e74a396875/sunwhere-1.4.0-py3-none-any.whl", hash = "sha256:823b5d2a80cd5560783b89f829576e8a2fd596eb3f2a8ae91b9efbd7ea155221", size = 58396, upload-time = "2026-05-16T20:27:37.51Z" },
+    { url = "https://files.pythonhosted.org/packages/5b/1c/7123e79849e46d60e8315c4c28524741adefd4d54ce667acc948e2f8dc76/sunwhere-1.4.1-py3-none-any.whl", hash = "sha256:2efff2132d3b598a6841fc93bef42b5bc95e4d0de98ad06cbaf9d3cc38148fc1", size = 59573, upload-time = "2026-06-02T17:36:42.391Z" },
 ]
 
 [[package]]

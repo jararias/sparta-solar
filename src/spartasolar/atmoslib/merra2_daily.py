@@ -51,18 +51,86 @@ from typing import Self, Sequence
 
 import huggingface_hub as Hf
 import numpy as np
-import numpy.typing as npt
 import pandas as pd
 import platformdirs
 import xarray as xr
 from loguru import logger
 
 from ._base import BaseAtmosphere, build_atmosphere_of_sites, build_atmosphere_on_regular_grid
+from .helpers import ensure_tz_aware_datetime_index
 from ..config import get_option
 from ..validation import Latitude, Longitude, validate_type
 
 logger.disable(__name__)
 logger = logger.opt(colors=True)
+
+
+def list_merra2_daily_cache() -> list[int]:
+    """List the years available in the local MERRA-2 daily cache.
+
+    Scans the directory returned by :func:`get_database_path` for Zarr
+    archives and returns the years found.
+
+    Returns
+    -------
+    list of int
+        Sorted list of years available in the local cache.
+
+    Examples
+    --------
+    >>> from spartasolar.atmoslib.merra2_daily import list_merra2_daily_cache
+    >>> years = list_merra2_daily_cache()
+    >>> print(years)
+    [2019, 2020, 2021]
+    """
+    db_path = get_database_path()
+    years = sorted(
+        int(p.stem)
+        for p in db_path.glob("*.zarr")
+        if p.is_dir() and p.stem.isdigit()
+    )
+    return years
+
+
+def clear_merra2_daily_cache(years: int | Sequence[int] | None = None) -> None:
+    """Remove cached MERRA-2 daily Zarr archives from local storage.
+
+    Parameters
+    ----------
+    years : int, sequence of int, or None, optional
+        Year or list of years to remove from the cache. If ``None``,
+        the entire MERRA-2 daily cache directory is cleared (all years).
+
+    Examples
+    --------
+    >>> from spartasolar.atmoslib.merra2_daily import clear_merra2_daily_cache
+
+    >>> # Remove a single year
+    >>> clear_merra2_daily_cache(2020)
+
+    >>> # Remove multiple years
+    >>> clear_merra2_daily_cache([2019, 2020])
+
+    >>> # Clear the entire cache
+    >>> clear_merra2_daily_cache()
+    """
+    import shutil
+
+    db_path = get_database_path()
+
+    if years is None:
+        targets = list(db_path.glob("*.zarr"))
+    else:
+        if isinstance(years, int):
+            years = [years]
+        targets = [db_path / f"{year}.zarr" for year in years]
+
+    for target in targets:
+        if target.exists():
+            shutil.rmtree(target)
+            logger.debug(f"Removed cache: <cyan>{target}</cyan>")
+        else:
+            logger.warning(f"Cache not found, skipping: <yellow>{target}</yellow>")
 
 
 def get_database_path() -> Path:
@@ -121,7 +189,7 @@ class MERRA2DailyAtmosphere(
     @classmethod
     def at_sites(
         cls,
-        times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex,
+        times: np.ndarray[tuple[int], np.dtype[np.datetime64]] | pd.DatetimeIndex,
         latitude: Sequence[float] | float,
         longitude: Sequence[float] | float,
         site_names: Sequence[str] | None = None,
@@ -201,7 +269,16 @@ class MERRA2DailyAtmosphere(
 
         # time interpolation
         if "time" in output_dataset.coords:
-            output_dataset = output_dataset.interp(time=times, method='quadratic')
+            output_dataset = (
+                output_dataset
+                .assign_coords(
+                    time=pd.to_datetime(output_dataset.time.values).tz_localize(None)  # convert to tz-naive for interpolation
+                )
+                .interp(
+                    time=ensure_tz_aware_datetime_index(times, utc=True).tz_localize(None),  # convert to tz-naive for interpolation
+                    method='quadratic'
+                )
+            )
 
         global_attrs = {
             "title": "Daily Clear-sky Atmospheric Dataset for SPARTA",
@@ -221,7 +298,7 @@ class MERRA2DailyAtmosphere(
     @classmethod
     def on_regular_grid(
         cls,
-        times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex,
+        times: np.ndarray[tuple[int], np.dtype[np.datetime64]] | pd.DatetimeIndex,
         latitude: Sequence[float] | float,
         longitude: Sequence[float] | float,
     ) -> Self:
@@ -274,6 +351,9 @@ class MERRA2DailyAtmosphere(
         longitude = [longitude] if isinstance(longitude, (float, int)) else longitude
         longitude = np.asarray([validate_type(lon, Longitude) for lon in longitude], dtype=float).reshape(-1)
 
+        logger.info(f"loading MERRA-2 daily data for {len(times)} time points, "
+                    f"{len(latitude)} latitudes, {len(longitude)} longitudes...")
+
         # load the dataset. Check for local availability. If not available, download.
         dataset = cls._load_dataset(times)
         dataset["albedo"] = dataset["albedo"].fillna(0.)
@@ -283,7 +363,16 @@ class MERRA2DailyAtmosphere(
 
         # time interpolation
         if "time" in output_dataset.coords:
-            output_dataset = output_dataset.interp(time=times, method='quadratic')
+            output_dataset = (
+                output_dataset
+                .assign_coords(
+                    time=pd.to_datetime(output_dataset.time.values).tz_localize(None)  # convert to tz-naive for interpolation
+                )
+                .interp(
+                    time=ensure_tz_aware_datetime_index(times, utc=True).tz_localize(None),  # convert to tz-naive for interpolation
+                    method='quadratic'
+                )
+            )
 
         global_attrs = {
             "title": "Daily Clear-sky Atmospheric Dataset for SPARTA",
@@ -298,52 +387,6 @@ class MERRA2DailyAtmosphere(
             constituents=output_dataset.data_vars,
             global_attrs=global_attrs)
         return obj
-
-    @staticmethod
-    def _infer_years_from_times(times: npt.NDArray[np.datetime64] | pd.DatetimeIndex) -> list[int]:
-        """Infer which years of data are needed for temporal interpolation.
-        
-        Determines the set of years required to cover the requested time range,
-        including padding years if times are close to year boundaries (within 3 days).
-        This ensures smooth temporal interpolation at year transitions.
-        
-        Args:
-            times: Array of datetime values for which data is needed.
-            
-        Returns:
-            list[int]: Sorted list of years whose data files should be loaded.
-            
-        Examples:
-            >>> import pandas as pd
-            >>> from spartasolar.atmoslib.merra2_daily import MERRA2DailyAtmosphere
-            
-            >>> # Mid-year dates - only 2020
-            >>> times = pd.date_range("2020-06-01", "2020-07-01", freq="D")
-            >>> MERRA2DailyAtmosphere._infer_years_from_times(times)
-            [2020]
-            
-            >>> # Spanning years - both 2020 and 2021
-            >>> times = pd.date_range("2020-12-01", "2021-01-31", freq="D")
-            >>> MERRA2DailyAtmosphere._infer_years_from_times(times)
-            [2020, 2021]
-            
-            >>> # Near year start - includes previous year for interpolation
-            >>> times = pd.date_range("2020-01-01", "2020-01-02", freq="D")
-            >>> MERRA2DailyAtmosphere._infer_years_from_times(times)
-            [2019, 2020]
-            
-            >>> # Near year end - includes next year for interpolation
-            >>> times = pd.date_range("2020-12-30", "2020-12-31", freq="D")
-            >>> MERRA2DailyAtmosphere._infer_years_from_times(times)
-            [2020, 2021]
-        """
-        the_times = times if isinstance(times, pd.DatetimeIndex) else pd.to_datetime(times)
-        years = set(the_times.year)
-        if (the_times[0] - pd.to_datetime(f"{min(years)}-01-01 12")) < pd.Timedelta(3, "D"):
-            years.add(min(years)-1)
-        if (pd.to_datetime(f"{max(years)}-12-31 12") - the_times[-1]) < pd.Timedelta(3, "D"):
-            years.add(max(years)+1)
-        return sorted(years)
 
     @classmethod
     def _ensure_all_paths_are_local(cls, paths: list[Path]) -> None:
@@ -385,7 +428,7 @@ class MERRA2DailyAtmosphere(
     @classmethod
     def _load_dataset(
         cls,
-        times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex,
+        times: np.ndarray[tuple[int], np.dtype[np.datetime64]] | pd.DatetimeIndex,
     ) -> xr.Dataset:
         """Load and concatenate annual MERRA-2 daily Zarr archives.
 
@@ -402,10 +445,19 @@ class MERRA2DailyAtmosphere(
         xr.Dataset
             Lazily opened dataset with dimensions (time, lat, lon).
         """
-        years = cls._infer_years_from_times(times)
+
+        # 1. determine the year span needed based on requested times (with padding near year boundaries)
+        times_utc = ensure_tz_aware_datetime_index(times, utc=True)
+        years = set(times_utc.year)
+        if (times_utc[0] - pd.to_datetime(f"{min(years)}-01-01 12", utc=True)) < pd.Timedelta(3, "D"):
+            years.add(min(years)-1)
+        if (pd.to_datetime(f"{max(years)}-12-31 12", utc=True) - times_utc[-1]) < pd.Timedelta(3, "D"):
+            years.add(max(years)+1)
+        years = sorted(years)
+        logger.debug(f"inferred years needed for interpolation: {years}")
+
         paths = [cls.database_path / str(year) for year in sorted(years)]
         cls._ensure_all_paths_are_local(paths)  # if any path is missing, download it
-
         logger.debug(f"loading paths: {paths}")
 
         # para abrir múltiples zarr anuales concatenados

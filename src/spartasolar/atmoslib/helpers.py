@@ -1,6 +1,28 @@
 
+import copy
+from typing import Any, Sequence
 
 import numpy as np
+import pandas as pd
+
+
+def ensure_tz_aware_datetime_index(times: Any, utc: bool = False) -> pd.DatetimeIndex:
+    times_dti = copy.deepcopy(times)
+
+    # 1. convert to DatetimeIndex, if not already
+    if not isinstance(times_dti, pd.DatetimeIndex):
+        if isinstance(times, str) or not isinstance(times, Sequence):
+            times_dti = [times_dti]
+        times_dti = pd.to_datetime(times_dti)
+
+    # 2. ensure tz-aware, if not already
+    if times_dti.tz is None:
+        times_dti = times_dti.tz_localize("UTC")
+
+    # 3. convert to UTC, if requested
+    if utc:
+        return times_dti.tz_convert("UTC")
+    return times_dti
 
 
 def pwater_in_kg_m2_to_cm(kg_m2: np.ndarray[float]) -> np.ndarray[float]:

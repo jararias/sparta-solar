@@ -79,7 +79,7 @@ class MERRA2CDAAtmosphere(
     @classmethod
     def at_sites(
         cls,
-        times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex,
+        times: np.ndarray[tuple[int], np.dtype[np.datetime64]] | pd.DatetimeIndex,
         latitude: Sequence[float],
         longitude: Sequence[float],
         site_names: Sequence[str] | None = None,
@@ -133,7 +133,7 @@ class MERRA2CDAAtmosphere(
     @classmethod
     def on_regular_grid(
         cls,
-        times: np.ndarray[tuple[int], np.datetime64] | pd.DatetimeIndex,
+        times: np.ndarray[tuple[int], np.dtype[np.datetime64]] | pd.DatetimeIndex,
         latitude: Sequence[float],
         longitude: Sequence[float],
     ) -> Self:
