@@ -39,7 +39,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-.ipython/history.sqlite
+# .ipython/history.sqlite
 
 # Documentation
 site/
