@@ -55,9 +55,20 @@ logger.info(f"Using Keepass key file <blue>{KEEPASS_KEY_FILE}</blue>")
 master_password = getpass.getpass("Introduce contraseña: ")
 
 with PyKeePass(KEEPASS_DB_FILE, password=master_password, keyfile=KEEPASS_KEY_FILE) as kp:
-    entries = kp.find_entries(title="pypi")
-    if entries:
-        entry = entries[0]
-        print(f"Found entry: {entry.title}")
-    else:
-        print("Entry not found.")
+
+    if not (entries := kp.find_entries(title="pypi")):
+        logger.error("Entry 'pypi' not found in the Keepass database.")
+        exit(1)
+    entry = entries[0]
+    with open(".env", "w") as f:
+        f.write(f"UV_PUBLISH_TOKEN={entry.password}\n")
+
+    if not (entries := kp.find_entries(title="test-pypi")):
+        logger.error("Entry 'test-pypi' not found in the Keepass database. Removing .env file.")
+        Path(".env").unlink(missing_ok=True)
+        exit(1)
+    entry = entries[0]
+    with open(".env", "a") as f:
+        f.write(f"UV_PUBLISH_TEST_TOKEN={entry.password}\n")
+
+    logger.info("Environment file <blue>.env</blue> created successfully.")

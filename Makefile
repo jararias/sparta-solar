@@ -50,12 +50,16 @@ docs-clean:
 
 .PHONY: publish
 publish:
+	@uv run scripts/create_env.py
 	@test -n "$(UV_PUBLISH_TOKEN)" || (echo "Error: UV_PUBLISH_TOKEN no está definido (créalo en .env)"; exit 1)
 	@uv build
 	@uv publish
+	@rm -f .env
 
 .PHONY: publish-test
 publish-test:
+	@uv run scripts/create_env.py
 	@test -n "$(UV_PUBLISH_TEST_TOKEN)" || (echo "Error: UV_PUBLISH_TEST_TOKEN no está definido (créalo en .env)"; exit 1)
 	@uv build
 	@uv publish --publish-url https://test.pypi.org/legacy/ --token $(UV_PUBLISH_TEST_TOKEN)
+	@rm -f .env
