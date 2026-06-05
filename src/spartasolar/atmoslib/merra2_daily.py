@@ -11,11 +11,13 @@ The MERRA2DailyAtmosphere class enables:
     - Temporal and spatial interpolation
     - Automatic data caching and loading
 
-Data Source:
+Data Source
+-----------
     MERRA-2 daily data is stored in Zarr format and organized by year.
     Data can be cached locally or downloaded on demand.
 
-Examples:
+Examples
+--------
     >>> import pandas as pd
     >>> from spartasolar.atmoslib import MERRA2DailyAtmosphere
     
@@ -41,7 +43,8 @@ Examples:
     >>> pressure = atmos.dataset["pressure"]
     >>> albedo = atmos.dataset["albedo"]
 
-See Also:
+See Also
+--------
     - MERRA2LTAAtmosphere: Long-term average MERRA-2 climatology
     - BaseAtmosphere: Base class defining the atmosphere interface
 """
@@ -173,17 +176,15 @@ class MERRA2DailyAtmosphere(
         - at_sites(): Extract data at specific point locations
         - on_regular_grid(): Extract data on a regular lat/lon mesh
     
-    Attributes:
-        database_path: Path to local MERRA-2 data storage directory
-        
-    Available Variables:
-        - pressure: Surface air pressure [Pa]
-        - albedo: Surface albedo [0-1]
-        - pwater: Precipitable water [kg/m²]
-        - ozone: Total column ozone [kg/m²]
-        - beta: Angström turbidity parameter
-        - alpha: Angström wavelength exponent
-        - ssa: Aerosol single scattering albedo
+    Attributes
+    ----------
+    database_path : Path
+        Path to local MERRA-2 data storage directory.
+
+    Notes
+    -----
+    Available variables include ``pressure``, ``albedo``, ``pwater``,
+    ``ozone``, ``beta``, ``alpha`` and ``ssa``.
     """
 
     @classmethod
@@ -199,26 +200,29 @@ class MERRA2DailyAtmosphere(
         Extracts and interpolates MERRA-2 data for one or more point locations.
         Performs bilinear spatial interpolation and quadratic temporal interpolation.
         
-        Args:
-            times: Time points for data extraction. Can be numpy datetime64 array
-                or pandas DatetimeIndex.
-            latitude: Latitude coordinate(s) in decimal degrees. Single value or
-                sequence. Range: -90° < lat < 90°.
-            longitude: Longitude coordinate(s) in decimal degrees. Single value or
-                sequence. Range: -180° ≤ lon < 180°.
-            site_names: Optional names for the sites. If provided, added as a
-                coordinate in the output dataset.
-                
-        Returns:
-            MERRA2DailyAtmosphere: Instance containing interpolated atmospheric data.
-            
-        Raises:
-            ValueError: If latitude and longitude have different lengths, or if
-                coordinates are out of valid range.
-            NotImplementedError: If required data files are not found locally
-                and downloading is not yet implemented.
-                
-        Examples:
+        Parameters
+        ----------
+        times : np.ndarray or pd.DatetimeIndex
+            Time points for data extraction.
+        latitude : float or Sequence[float]
+            Latitude coordinate(s) in decimal degrees.
+        longitude : float or Sequence[float]
+            Longitude coordinate(s) in decimal degrees.
+        site_names : Sequence[str] or None, default None
+            Optional names for the sites.
+
+        Returns
+        -------
+        MERRA2DailyAtmosphere
+            Instance containing interpolated atmospheric data.
+
+        Raises
+        ------
+        ValueError
+            If latitude and longitude have different lengths or invalid values.
+
+        Examples
+        --------
             >>> import pandas as pd
             >>> from spartasolar.atmoslib import MERRA2DailyAtmosphere
             
@@ -308,21 +312,27 @@ class MERRA2DailyAtmosphere(
         The output has dimensions (time, lat, lon). NaN values in albedo are filled
         with zeros.
         
-        Args:
-            times: Time points for data extraction.
-            latitude: Latitude coordinates for the grid in decimal degrees.
-                Must be a sequence (list, array).
-            longitude: Longitude coordinates for the grid in decimal degrees.
-                Must be a sequence (list, array).
-                
-        Returns:
-            MERRA2DailyAtmosphere: Instance containing gridded atmospheric data.
-            
-        Raises:
-            ValueError: If coordinates are out of valid range.
-            NotImplementedError: If required data files are not found locally.
-            
-        Examples:
+        Parameters
+        ----------
+        times : np.ndarray or pd.DatetimeIndex
+            Time points for data extraction.
+        latitude : float or Sequence[float]
+            Latitude coordinates for the grid in decimal degrees.
+        longitude : float or Sequence[float]
+            Longitude coordinates for the grid in decimal degrees.
+
+        Returns
+        -------
+        MERRA2DailyAtmosphere
+            Instance containing gridded atmospheric data.
+
+        Raises
+        ------
+        ValueError
+            If coordinates are out of valid range.
+
+        Examples
+        --------
             >>> import pandas as pd
             >>> import numpy as np
             >>> from spartasolar.atmoslib import MERRA2DailyAtmosphere

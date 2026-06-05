@@ -1,4 +1,4 @@
-r"""Base Abstract Classes for Atmospheric Data Handling.
+"""Base abstract classes for atmospheric data handling.
 
 This module defines the blueprint for all atmosphere database implementations.
 It uses an abstract base class (ABC) to ensure a consistent interface for 

@@ -13,6 +13,24 @@ def safe_import(name, package=None):
 
 
 def cast_to_compatible_arrays(*args):
+    """Cast scalar and array inputs to a common broadcast-compatible shape.
+
+    Parameters
+    ----------
+    *args : Any
+        Input values to cast. String and boolean inputs are passed through.
+
+    Returns
+    -------
+    list
+        List containing casted inputs followed by a ``restore_shape`` callable
+        that converts outputs back to the original input shape.
+
+    Raises
+    ------
+    ValueError
+        If non-scalar array-like inputs have incompatible shapes.
+    """
     # .. cast inputs to np.array with, at least, dimension 1, except when
     #    they are of type str or bool, that they are left unchanged
     args_ar = [a if isinstance(a, (str, bool)) else np.atleast_1d(a)
@@ -74,17 +92,20 @@ def cast_to_compatible_arrays(*args):
 
 
 def altitude_to_pressure(z, zo=0., Po=1013.25):
-    """
-    Calculate atmospheric pressure from altitude with the hypsometric
-    equation (hydrostatic atmosphere + ideal gas state equation)
+    """Estimate atmospheric pressure from altitude.
 
     Parameters
     ----------
-      z : array-like
-          Ground altitude, in meters above mean sea level
-      zo : float
-          Ground altitude reference level, in meters above mean sea level
-      Po : float
-          Atmospheric pressure at z=zo, in hPa
+    z : array-like
+        Ground altitude, in meters above mean sea level.
+    zo : float, default 0.0
+        Ground altitude reference level, in meters above mean sea level.
+    Po : float, default 1013.25
+        Atmospheric pressure at ``z=zo``, in hPa.
+
+    Returns
+    -------
+    array-like
+        Atmospheric pressure at altitude ``z``, in hPa.
     """
     return Po * np.exp(-(z-zo)/8419.)  # T=15 K

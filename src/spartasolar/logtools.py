@@ -99,5 +99,10 @@ def enable_logger(name: str | None = None, with_mp: bool = False, filtros: list[
     logger.enable("spartasolar")
 
 def disable_logger():
-    """Disable logging for the spartasolar namespace."""
+    """Disable logging emission for the ``spartasolar`` namespace.
+
+    Notes
+    -----
+    This only affects records emitted under the ``spartasolar`` logger name.
+    """
     logger.disable("spartasolar")

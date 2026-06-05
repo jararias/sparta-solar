@@ -90,7 +90,20 @@ _CACHE_FILENAME_RE = re.compile(
 
 
 def _parse_cache_filename(path: Path) -> dict[str, float | int | Path | str] | None:
-    """Parse cache metadata encoded in a MERRA-2 GEE cache filename."""
+    """Parse metadata encoded in a MERRA-2 GEE cache filename.
+
+    Parameters
+    ----------
+    path : Path
+        Candidate parquet path following the MERRA-2 GEE cache naming
+        convention.
+
+    Returns
+    -------
+    dict[str, float | int | Path | str] or None
+        Parsed metadata dictionary when the filename matches the expected
+        pattern, otherwise ``None``.
+    """
     match = _CACHE_FILENAME_RE.match(path.name)
     if match is None:
         return None

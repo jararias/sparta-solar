@@ -1,4 +1,4 @@
-r"""Configuration Management for SPARTA-Solar.
+"""Configuration management for SPARTA-Solar.
 
 This module handles the persistent storage and retrieval of user settings using 
 a TOML configuration file located in the standard user configuration directory.
@@ -21,7 +21,8 @@ Configuration File Location:
     - macOS: ~/Library/Application Support/spartasolar/config.toml
     - Windows: C:\\Users\\<user>\\AppData\\Local\\spartasolar\\config.toml
 
-Examples:
+Examples
+--------
     >>> from spartasolar.config import get_config_path, get_option, set_option
     
     >>> # Get configuration file path
@@ -38,7 +39,8 @@ Examples:
     >>> # Get data directory (returns Path object)
     >>> data_dir = get_option('merra2_daily.data_dir')
 
-See Also:
+See Also
+--------
     - get_config_path(): Get path to configuration file
     - get_option(): Retrieve configuration value
     - set_option(): Modify configuration (session only)
@@ -93,9 +95,11 @@ engine = "numexpr"
 def get_config_path() -> Path:
     """Get the path to the user's configuration file.
 
-    Returns:
-        Path: The absolute path to `config.toml` within the standard 
-            system-specific user configuration directory.
+    Returns
+    -------
+    Path
+        Absolute path to ``config.toml`` within the standard
+        system-specific user configuration directory.
     """
     path = platformdirs.user_config_path(appname="sparta-solar", ensure_exists=True)
     return path / "config.toml"
@@ -111,9 +115,10 @@ def _read_config_options() -> dict[str, Any]:
     If the configuration file does not exist, it initializes it with 
     default placeholder values.
 
-    Returns:
-        dict[str, Any]: A dictionary containing the configuration keys 
-            and their values parsed from the TOML file.
+    Returns
+    -------
+    dict[str, Any]
+        Configuration keys and values parsed from the TOML file.
     """
 
     if not (config_path := get_config_path()).exists():
@@ -134,9 +139,10 @@ _GLOBAL_CONFIG = _read_config_options()
 def show_config() -> None:
     """Print all current global options to the console.
 
-    Note:
-        This function uses `pprint` for a formatted output of the 
-        global configuration state.
+    Notes
+    -----
+    This function uses ``pprint`` for formatted output of the global
+    configuration state.
     """
     from pprint import pprint
     return pprint(_GLOBAL_CONFIG, indent=2, width=20)
@@ -147,17 +153,24 @@ def get_option(name: str, default: Any = None) -> Any:
     Options are organized in tables (sections) within the TOML file.
     This function uses dot notation to access nested values.
 
-    Args:
-        name: The name of the option to retrieve using the format
-            `<table-name>.<option-name>` (e.g., 'crs_soda.user_email').
-        default: Value to return if the option is not found. Defaults to None.
+    Parameters
+    ----------
+    name : str
+        Name of the option to retrieve using the format
+        ``<table-name>.<option-name>`` (for example,
+        ``"crs_soda.user_email"``).
+    default : Any, default None
+        Value to return if the option is missing.
 
-    Returns:
-        Any: The value of the option. Returns `default` if the option 
-            is missing. Special case: options named 'data_dir' are 
-            automatically converted to `Path` objects.
-            
-    Examples:
+    Returns
+    -------
+    Any
+        Option value. Returns ``default`` if the option is missing.
+        Options named ``"data_dir"`` are automatically converted to
+        ``Path`` objects.
+
+    Examples
+    --------
         >>> from spartasolar.config import get_option
         
         >>> # Get solar position algorithm
@@ -191,19 +204,21 @@ def set_option(name: str, value: Any) -> None:
     the Python session ends. To make persistent changes, edit the
     config.toml file directly.
 
-    Args:
-        name: The name of the option to update in format `<table>.<option>`.
-        value: The new value to assign. Path objects for 'data_dir' options
-            are automatically converted to strings.
+    Parameters
+    ----------
+    name : str
+        Name of the option to update in format ``<table>.<option>``.
+    value : Any
+        New value to assign. ``Path`` objects for ``"data_dir"`` options
+        are automatically converted to strings.
 
-    Returns:
-        None
-
-    Warning:
+    Notes
+    -----
         Session-only changes are NOT saved to the config file. Restart
         the Python session to revert to file values.
-        
-    Examples:
+
+    Examples
+    --------
         >>> from spartasolar.config import set_option, get_option
         
         >>> # Change solar position algorithm
@@ -215,9 +230,10 @@ def set_option(name: str, value: Any) -> None:
         >>> from pathlib import Path
         >>> set_option('merra2_daily.data_dir', Path('/custom/path'))
         
-    Note:
+    Notes
+    -----
         To persist changes, manually edit the configuration file at the
-        path returned by get_config_path().
+        path returned by ``get_config_path``.
     """
 
     table_name, option_name = name.split(".")

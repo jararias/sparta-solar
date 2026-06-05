@@ -1,4 +1,4 @@
-r"""Bird & Hulstrom Clear-Sky Broadband Model.
+"""Bird & Hulstrom clear-sky broadband model.
 
 This module implements the Bird & Hulstrom (1981) model, a widely used 
 broadband parameterization for calculating clear-sky solar irradiance. 
@@ -22,40 +22,52 @@ def BIRD(
     asy: float | np.ndarray = 0.65,
     ecf: float | np.ndarray = 1.0
 ) -> dict[str, np.ndarray]:
-    r"""Calculates solar irradiance using the Bird & Hulstrom model.
+    """Calculate solar irradiance using the Bird & Hulstrom model.
 
     The model estimates solar radiation through individual transmittance 
     processes for Rayleigh scattering, ozone absorption, uniformly mixed gases, 
     water vapor, and aerosol extinction. It also accounts for multiple 
     reflections between the ground and the sky.
 
-    Args:
-        cosz: Cosine of the solar zenith angle.
-        pressure: Atmospheric surface pressure in hPa.
-        albedo: Ground surface albedo (0 to 1).
-        pwater: Precipitable water in cm.
-        ozone: Ozone vertical pathlength in atm-cm (1 atm-cm = 1000 DU).
-        beta: Ångström's turbidity coefficient (AOD at 1000 nm).
-        alpha: Ångström's wavelength exponent.
-        ssa: Aerosol single-scattering albedo at ~700 nm.
-        asy: Aerosol asymmetry parameter.
-        ecf: Eccentricity correction factor for the Sun-Earth orbit.
+    Parameters
+    ----------
+    cosz : float or np.ndarray, default 0.5
+        Cosine of the solar zenith angle.
+    pressure : float or np.ndarray, default 1013.25
+        Atmospheric surface pressure in hPa.
+    albedo : float or np.ndarray, default 0.2
+        Ground surface albedo in the range [0, 1].
+    pwater : float or np.ndarray, default 1.4
+        Precipitable water in cm.
+    ozone : float or np.ndarray, default 0.3
+        Ozone vertical path length in atm-cm (1 atm-cm = 1000 DU).
+    beta : float or np.ndarray, default 0.1
+        Angstrom turbidity coefficient (AOD at 1000 nm).
+    alpha : float or np.ndarray, default 1.3
+        Angstrom wavelength exponent.
+    ssa : float or np.ndarray, default 0.92
+        Aerosol single-scattering albedo at approximately 700 nm.
+    asy : float or np.ndarray, default 0.65
+        Aerosol asymmetry parameter.
+    ecf : float or np.ndarray, default 1.0
+        Eccentricity correction factor for the Sun-Earth orbit.
 
-    Returns:
-        dict[str, np.ndarray]: A dictionary containing:
-            - `dni`: Direct normal irradiance [W/m²].
-            - `dhi`: Direct horizontal irradiance [W/m²].
-            - `dif`: Diffuse horizontal irradiance [W/m²].
-            - `ghi`: Global horizontal irradiance [W/m²].
+    Returns
+    -------
+    dict[str, np.ndarray]
+        Dictionary containing irradiance components in W/m²:
+        ``dni``, ``dhi``, ``dif``, and ``ghi``.
 
-    Notes:
+    Notes
+    -----
         - The model uses a fixed solar constant (\(G_{sc}\)) of 1353 W/m².
         - Nighttime values are automatically masked (set to 0) for zenith 
           angles greater than 90.5°.
         - The algorithm includes a 0.9662 correction factor for the 
           direct normal component as per the original publication.
 
-    References:
+    References
+    ----------
         - Bird, R. E., & Hulstrom, R. L. (1981). A simplified clear sky 
           model for direct and diffuse insolation on horizontal surfaces. 
           Solar Energy Research Institute (SERI).

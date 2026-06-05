@@ -1,4 +1,4 @@
-r"""Broadband Clear-Sky Solar Radiation Model (SPARTA).
+"""Broadband clear-sky solar radiation model (SPARTA).
 
 This module implements the **SPARTA** model (*Solar Parameterization of the 
 Radiative Transfer of the Atmosphere*), a high-performance 2-band broadband 
@@ -74,7 +74,7 @@ def SPARTA(
     csi_hfov: float = 2.5,
     transmittance_scheme: str = 'interdependent'
 ) -> dict[str, np.ndarray]:
-    r"""Compute clear-sky solar irradiance using the SPARTA model.
+    """Compute clear-sky solar irradiance using the SPARTA model.
     
     SPARTA (Solar PArameterization of the Radiative Transfer of the
     Atmosphere) is a high-accuracy 2-band broadband clear-sky model
