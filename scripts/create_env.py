@@ -16,6 +16,9 @@ logger.add(
 logger = logger.opt(colors=True)
 
 
+logger.disable(__name__)
+
+
 def get_file_path_from_env(env_var: str) -> Path:
     if not (env_var_file := os.environ.get(env_var)):
         logger.error(f"'{env_var}' not set")
