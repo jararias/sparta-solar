@@ -15,6 +15,8 @@ A Python library to compute clear-sky solar irradiance at the ground surface usi
 
 ---
 
+> **Licence:** sparta-solar is distributed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). It is free to use, share and adapt for research and other **non-commercial** purposes, with attribution and under the same licence. **Commercial use is not permitted** without a separate agreement with the author.
+
 ## Quick install
 
 ```bash
@@ -25,6 +27,12 @@ or with [uv](https://docs.astral.sh/uv/):
 
 ```bash
 uv add sparta-solar
+```
+
+Note that the distribution is named `sparta-solar`, but the Python package is imported as `spartasolar`:
+
+```python
+import spartasolar
 ```
 
 ## Quick examples
@@ -47,6 +55,8 @@ print(result)
 On a regular spatial grid:
 
 ```python
+import numpy as np
+
 lats = np.arange(-60, 60.1, 1)
 lons = np.arange(-90, 90.1, 1)
 atmos  = merra2_daily.on_regular_grid(
@@ -78,4 +88,4 @@ Full documentation — installation guide, user guide, quick reference, and API 
 
 ## License
 
-[CC BY-NC-SA 4.0](LICENSE) — free for non-commercial use with attribution.
+[CC BY-NC-SA 4.0](LICENSE) — free for research and other non-commercial use, with attribution and under the same licence. Commercial use is not permitted without a separate agreement with the author.

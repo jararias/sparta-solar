@@ -12,8 +12,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-from pathlib import Path
-from unittest.mock import patch, MagicMock, mock_open
+from unittest.mock import patch
 
 from spartasolar.atmoslib.merra2_daily import (
     MERRA2DailyAtmosphere,
@@ -198,7 +197,7 @@ class TestLoadDataset:
     def test_load_dataset_single_year(self, mock_open_mf, mock_ensure_paths, sample_atmosphere_data, tmp_path):
         """Test loading dataset for a single year."""
         mock_open_mf.return_value = sample_atmosphere_data
-        MERRA2DailyAtmosphere.database_path = tmp_path
+        MERRA2DailyAtmosphere._database_path_spec = tmp_path
         
         times = pd.date_range("2020-06-01", periods=10, freq="D")
         
@@ -213,7 +212,7 @@ class TestLoadDataset:
     def test_load_dataset_multiple_years(self, mock_open_mf, mock_ensure_paths, sample_atmosphere_data, tmp_path):
         """Test loading dataset spanning multiple years."""
         mock_open_mf.return_value = sample_atmosphere_data
-        MERRA2DailyAtmosphere.database_path = tmp_path
+        MERRA2DailyAtmosphere._database_path_spec = tmp_path
         
         times = pd.date_range("2020-11-01", periods=90, freq="D")
         
@@ -233,7 +232,7 @@ class TestLoadDataset:
     def test_load_dataset_calls_open_mfdataset_correctly(self, mock_open_mf, mock_ensure_paths, sample_atmosphere_data, tmp_path):
         """Test that xr.open_mfdataset is called with correct parameters."""
         mock_open_mf.return_value = sample_atmosphere_data
-        MERRA2DailyAtmosphere.database_path = tmp_path
+        MERRA2DailyAtmosphere._database_path_spec = tmp_path
         
         times = pd.date_range("2020-06-01", periods=10, freq="D")
         

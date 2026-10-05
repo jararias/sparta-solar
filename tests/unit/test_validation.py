@@ -9,7 +9,6 @@ Tests cover:
 """
 
 import pytest
-from typing import Annotated
 
 from spartasolar.validation import (
     ValidaRegex,

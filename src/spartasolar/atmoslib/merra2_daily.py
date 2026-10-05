@@ -84,13 +84,13 @@ def list_merra2_daily_cache() -> list[int]:
     >>> from spartasolar.atmoslib.merra2_daily import list_merra2_daily_cache
     >>> years = list_merra2_daily_cache()
     >>> print(years)
-    [2019, 2020, 2021]
+    [2015, 2016, 2017]
     """
     db_path = get_database_path()
     years = sorted(
-        int(p.stem)
-        for p in db_path.glob("*.zarr")
-        if p.is_dir() and p.stem.isdigit()
+        int(p.name)
+        for p in db_path.iterdir()
+        if p.is_dir() and p.name.isdigit()
     )
     return years
 
@@ -109,10 +109,10 @@ def clear_merra2_daily_cache(years: int | Sequence[int] | None = None) -> None:
     >>> from spartasolar.atmoslib.merra2_daily import clear_merra2_daily_cache
 
     >>> # Remove a single year
-    >>> clear_merra2_daily_cache(2020)
+    >>> clear_merra2_daily_cache(2015)
 
     >>> # Remove multiple years
-    >>> clear_merra2_daily_cache([2019, 2020])
+    >>> clear_merra2_daily_cache([2016, 2017])
 
     >>> # Clear the entire cache
     >>> clear_merra2_daily_cache()
@@ -122,11 +122,11 @@ def clear_merra2_daily_cache(years: int | Sequence[int] | None = None) -> None:
     db_path = get_database_path()
 
     if years is None:
-        targets = list(db_path.glob("*.zarr"))
+        targets = [p for p in db_path.iterdir() if p.is_dir() and p.name.isdigit()]
     else:
         if isinstance(years, int):
             years = [years]
-        targets = [db_path / f"{year}.zarr" for year in years]
+        targets = [db_path / str(year) for year in years]
 
     for target in targets:
         if target.exists():
@@ -164,13 +164,15 @@ def get_database_path() -> Path:
 
 class MERRA2DailyAtmosphere(
     BaseAtmosphere,
-    database_path=get_database_path()
+    database_path=get_database_path
 ):
     """MERRA-2 daily atmospheric data accessor.
     
     Provides methods to load and interpolate MERRA-2 daily atmospheric data
     for specific locations or regular grids. Data is automatically cached
     locally and loaded from Zarr archives organized by year.
+
+    The data cover the period 1999-2018 (``START_YEAR`` to ``END_YEAR``).
     
     The class inherits from BaseAtmosphere and provides two main factory methods:
         - at_sites(): Extract data at specific point locations
@@ -186,6 +188,10 @@ class MERRA2DailyAtmosphere(
     Available variables include ``pressure``, ``albedo``, ``pwater``,
     ``ozone``, ``beta``, ``alpha`` and ``ssa``.
     """
+
+    START_YEAR = 1999
+    END_YEAR = 2018
+
 
     @classmethod
     def at_sites(
@@ -262,6 +268,10 @@ class MERRA2DailyAtmosphere(
 
         # load the dataset. Check for local availability. If not available, download.
         dataset = cls._load_dataset(times)
+
+        # fill NaN albedo (as in on_regular_grid) so that it does not spread to the sites
+        if "albedo" in dataset:
+            dataset["albedo"] = dataset["albedo"].fillna(0.)
 
         # lat-lon interpolation
         output_lat = xr.DataArray(latitude, dims="site", name="lat")
@@ -413,8 +423,7 @@ class MERRA2DailyAtmosphere(
         ValueError
             If a requested year is outside the available range (1999–2018).
         """
-        START_YEAR = 1999
-        END_YEAR = 2018
+        START_YEAR, END_YEAR = cls.START_YEAR, cls.END_YEAR
 
         def missing_paths():
             for path in filter(lambda p: not p.exists(), paths):
@@ -460,9 +469,11 @@ class MERRA2DailyAtmosphere(
         times_utc = ensure_tz_aware_datetime_index(times, utc=True)
         years = set(times_utc.year)
         if (times_utc[0] - pd.to_datetime(f"{min(years)}-01-01 12", utc=True)) < pd.Timedelta(3, "D"):
-            years.add(min(years)-1)
+            if min(years) > cls.START_YEAR:  # no padding beyond the available period
+                years.add(min(years)-1)
         if (pd.to_datetime(f"{max(years)}-12-31 12", utc=True) - times_utc[-1]) < pd.Timedelta(3, "D"):
-            years.add(max(years)+1)
+            if max(years) < cls.END_YEAR:
+                years.add(max(years)+1)
         years = sorted(years)
         logger.debug(f"inferred years needed for interpolation: {years}")
 

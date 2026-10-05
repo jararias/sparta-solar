@@ -84,7 +84,7 @@ def SPARTA(
     Parameters
     ----------
     cosz : float or np.ndarray, default 0.5
-        Cosine of the solar zenith angle [0, 1]. Values ≤ cos(90.5°) ≈ 0.00872
+        Cosine of the solar zenith angle [0, 1]. Values ≤ cos(90.5°) ≈ -0.00873
         are treated as nighttime.
     pressure : float or np.ndarray, default 1013.25
         Atmospheric surface pressure in hPa (or mb). Typical range: 800-1100 hPa.
@@ -187,7 +187,7 @@ def SPARTA(
     Notes
     -----
     - Solar constant used: 1361.1 W/m²
-    - Nighttime threshold: cosz ≤ cos(90.5°) ≈ 0.00872
+    - Nighttime threshold: cosz ≤ cos(90.5°) ≈ -0.00873
     - All input arrays are automatically broadcast to compatible shapes
     - Invalid/missing values (-999, NaN) are handled gracefully
     - The 'interdependent' scheme is recommended for highest accuracy
@@ -275,7 +275,7 @@ def SPARTA(
     Tb = BF[0]*T1 + BF[1]*T2  # extinction broadband transmittance
 
     Ebn[domain] = np.clip(SC*ecf[domain]*Tb, 0., np.inf)
-    Ebh = Ebn*cosz
+    Ebh = Ebn*np.clip(cosz, 0., None)  # no negative values between the horizon and COSZ_MIN
 
     # DIFFUSE IRRADIANCE...
 
@@ -309,7 +309,9 @@ def SPARTA(
     # CIRCUMSOLAR IRRADIANCE...
 
     csr = np.full(Ebn.shape, 0.)
-    if csi_param == "sparta":
+    if str(csi_param).lower() not in ("none", "sparta"):
+        raise ValueError(f"unknown `csi_param` {csi_param!r}. Expected 'none' or 'sparta'")
+    if str(csi_param).lower() == "sparta":
         Tab = BF[0]*Ta1 + BF[1]*Ta2
         Tab[(Ta1 >= 0.9999) & (Ta2 >= 0.9999)] = 1.
         csr[domain] = aerosol_circumsolar_ratio(alpha[domain], asy[domain], Tab, hfov[domain])
@@ -317,7 +319,7 @@ def SPARTA(
 
     # .. circumsolar correction
     Ebn = Ebn / (1. - csr)
-    Ebh = Ebn*cosz
+    Ebh = Ebn*np.clip(cosz, 0., None)  # no negative values between the horizon and COSZ_MIN
     Edh = Egh - Ebh
 
     # .. mask nighttime

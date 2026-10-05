@@ -48,7 +48,7 @@ toggle.icon = "lucide/moon"
 toggle.name = "Switch to system preference"
 
 [[project.theme.social]]
-icon = "fontawesome/solid/envolope"
+icon = "fontawesome/solid/envelope"
 link = "mailto:jararias@uma.es"
 name = "Jose A Ruiz-Arias, Universidad de Málaga, Spain"
 

@@ -77,9 +77,23 @@ import pandas as pd
 from loguru import logger
 
 from ._base import BaseAtmosphere, build_atmosphere_of_sites, build_atmosphere_on_regular_grid
+from .helpers import pwater_in_cm_to_kg_m2, ozone_in_cm_to_kg_m2
 
 logger.disable(__name__)
 logger = logger.opt(colors=True)
+
+
+def _to_internal_units(constituents: dict) -> dict:
+    """Convert user-facing units (pwater in cm, ozone in atm-cm) to kg m-2.
+
+    All atmospheres store `pwater` and `ozone` in kg m-2 (CF convention), and
+    `compute()` converts them back to the units required by the models.
+    """
+    converters = {"pwater": pwater_in_cm_to_kg_m2, "ozone": ozone_in_cm_to_kg_m2}
+    return {
+        name: converters[name](np.asarray(values, dtype=float)) if name in converters else values
+        for name, values in constituents.items()
+    }
 
 
 class CustomAtmosphere(
@@ -117,9 +131,11 @@ class CustomAtmosphere(
         longitude : float or Sequence[float]
             Longitude(s) in degrees East [-180, 180] (length n_sites)
         constituents : dict[str, np.ndarray]
-            Atmospheric variables as 2D arrays with shape (n_times, n_sites).
+            Atmospheric variables as arrays with shape (n_times, n_sites). For a
+            single site, 1-D arrays of length n_times are also accepted.
             Standard variable names: 'pressure' (Pa), 'pwater' (cm), 'ozone' (atm-cm),
-            'alpha', 'beta', 'ssa', 'albedo'
+            'alpha', 'beta', 'ssa', 'albedo'. `pwater` and `ozone` are stored
+            internally in kg m-2.
         site_names : Sequence[str], optional
             Names for each site
         var_attrs : dict, optional
@@ -152,7 +168,7 @@ class CustomAtmosphere(
             times=times,
             latitude=latitude,
             longitude=longitude,
-            constituents=constituents,
+            constituents=_to_internal_units(constituents),
             site_names=site_names,
             var_attrs=var_attrs,
             global_attrs=global_attrs)
@@ -180,7 +196,8 @@ class CustomAtmosphere(
             Longitude coordinates in degrees East (length n_lons)
         constituents : dict[str, np.ndarray]
             Atmospheric variables as 3D arrays with shape (n_times, n_lats, n_lons).
-            Standard names: 'pressure', 'pwater', 'ozone', 'alpha', 'beta', 'ssa', 'albedo'
+            Standard names: 'pressure' (Pa), 'pwater' (cm), 'ozone' (atm-cm), 'alpha',
+            'beta', 'ssa', 'albedo'. `pwater` and `ozone` are stored internally in kg m-2.
         var_attrs : dict, optional
             Custom variable attributes
         global_attrs : dict, optional
@@ -212,7 +229,7 @@ class CustomAtmosphere(
             times=times,
             latitude=latitude,
             longitude=longitude,
-            constituents=constituents,
+            constituents=_to_internal_units(constituents),
             var_attrs=var_attrs,
             global_attrs=global_attrs)
         return obj

@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "sparta-solar"
-version = "0.2.2"
+version = "0.2.3"
 description = "Solar PArameterization for the Radiative Transfer of the Atmosphere"
 readme = "README.md"
 requires-python = ">=3.12"

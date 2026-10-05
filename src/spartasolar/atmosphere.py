@@ -5,11 +5,11 @@ parameters for clear-sky solar radiation modeling. Each database provides
 atmospheric constituents (aerosol optical depth, water vapor, ozone, etc.)
 from different sources:
 
-- **MERRA2DailyAtmosphere** (merra2_daily): NASA MERRA-2 daily reanalysis (1980-present)
+- **MERRA2DailyAtmosphere** (merra2_daily): NASA MERRA-2 daily reanalysis (1999-2018)
 - **MERRA2LTAAtmosphere** (merra2_lta): MERRA-2 long-term monthly averages (1999-2018)
-- **MERRA2CDAAtmosphere** (merra2_cda): MERRA-2 climate data archive
+- **MERRA2CDAAtmosphere** (merra2_cda): MERRA-2 LTA with fixed low pwater and beta (clean and dry atmosphere)
 - **MERRA2GEEAtmosphere** (merra2_gee): MERRA-2 via Google Earth Engine API
-- **CRSSODAAtmosphere** (crs_soda): CRS SODA API historical data
+- **CRSSODAAtmosphere** (crs_soda): CAMS Radiation Service (McClear) via the SODA API
 - **CustomAtmosphere** (custom): User-defined atmospheric data
 
 Examples

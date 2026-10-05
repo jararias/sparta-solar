@@ -34,12 +34,10 @@ GEE_DATA_DIR = Path(__file__).parent.parent / "data" / "merra2_gee"
 @pytest.fixture(scope="module")
 def gee_atmosphere():
     from spartasolar import config
-    from spartasolar.atmoslib.merra2_geeapi import MERRA2GEEAtmosphere, get_database_path
+    from spartasolar.atmoslib.merra2_geeapi import MERRA2GEEAtmosphere
 
-    # Point to test data via config option; explicitly refresh the class
-    # attribute since the module may already be cached at import time
+    # Point to test data via config option (database_path is resolved lazily)
     config.set_option("merra2_gee.data_dir", GEE_DATA_DIR)
-    MERRA2GEEAtmosphere.database_path = get_database_path()
     return MERRA2GEEAtmosphere.at_site(
         times=TEST_TIMES,
         latitude=TEST_LAT,
@@ -103,8 +101,8 @@ class TestPhysicalValidity:
     @pytest.mark.parametrize("var", ["dni", "dhi", "dif", "ghi"])
     def test_bird_values_non_negative(self, bird_output, var):
         data = bird_output[var].values
-        valid = data[np.isfinite(data) & (data > 0)]
-        assert len(valid) > 0
+        valid = data[np.isfinite(data)]
+        assert np.any(valid > 0)
         assert np.all(valid >= 0)
 
     def test_sparta_ghi_energy_balance(self, sparta_output):

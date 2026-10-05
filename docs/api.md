@@ -25,6 +25,12 @@ generated from the source docstrings.
 
 ---
 
+### MERRA-2 clean and dry atmosphere
+
+::: spartasolar.atmoslib.merra2_cda.MERRA2CDAAtmosphere
+
+---
+
 ### Copernicus CRS via SODA API
 
 ::: spartasolar.atmoslib.crs_sodaapi.CRSSODAAtmosphere

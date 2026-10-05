@@ -108,8 +108,8 @@ def BIRD(
     TR = np.clip(np.exp(-0.0903*(amr**.84)*(1.+amr-amr**1.01)), 0., 1.)
     uo = am*ozone[domain]
     To = np.clip(
-        1 - (0.1611*uo/((1.+139.48*uo)**0.3035) -
-             0.002715*uo/((1.+(0.044*uo))+0.0003*uo**2)), 0., 1.)
+        1 - 0.1611*uo/((1.+139.48*uo)**0.3035)
+          - 0.002715*uo/(1.+0.044*uo+0.0003*uo**2), 0., 1.)
     Tg = np.clip(np.exp(-0.0127*amr**0.26), 0., 1.)
     uw = am*pwater[domain]
     Tw = np.clip(1 - 2.4959*uw / (((1 + 79.034*uw)**0.6828) + 6.385*uw), 0., 1.)
@@ -117,16 +117,16 @@ def BIRD(
     Ta = np.clip(np.exp(-(taua**0.873)*(1+taua-taua**0.7088)*am**0.9108), 0., 1.)
 
     Ebn[domain] = np.clip(0.9662*SC*ecf[domain]*TR*To*Tg*Tw*Ta, 0., np.inf)
-    Ebh = Ebn*cosz
+    Ebh = Ebn*np.clip(cosz, 0., None)  # no negative values between the horizon and COSZ_MIN
 
     # DIFFUSE IRRADIANCE...
 
     Taa = np.clip(1-(1-ssa[domain])*(1-am+am**1.06)*(1-Ta), 0., 1.)
-    Tas = Ta/Taa
+    Tas = np.divide(Ta, Taa, out=np.ones_like(Ta), where=Taa > 0)  # Taa -> 0 at very large airmasses
     Tabs = To*Tg*Taa*Tw
     Ba = 0.5*(1+asy[domain])
     rhos = 0.0685 + (1-Ba)*(1-Tas)
-    Ed0h = SC*cosz[domain]*np.clip(0.79*Tabs*(0.5*(1-TR) + Ba*(1-Tas))/(1.-am+am**1.02), 0., 1.)
+    Ed0h = SC*np.clip(cosz[domain], 0., None)*np.clip(0.79*Tabs*(0.5*(1-TR) + Ba*(1-Tas))/(1.-am+am**1.02), 0., 1.)
 
     Egh[domain] = (Ebh[domain] + Ed0h)/(1-albedo[domain]*rhos)
     Edh[domain] = Egh[domain] - Ebh[domain]

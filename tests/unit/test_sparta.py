@@ -9,7 +9,6 @@ Tests cover:
 """
 
 import numpy as np
-import pytest
 
 from spartasolar.modlib.sparta import SPARTA
 

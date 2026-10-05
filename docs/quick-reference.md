@@ -136,7 +136,7 @@ result = atm.compute()
 
 **Module**: `spartasolar.atmosphere.crs_soda`  
 **Class**: `CRSSODAAtmosphere`  
-**Coverage**: Europe, Africa, and surroundings | **Period**: 2004–present | **Access**: REST API (free registration)
+**Coverage**: Global | **Period**: 2004–present | **Access**: REST API (free registration)
 
 ### One-time setup
 
@@ -175,6 +175,21 @@ result = atm.compute()
 
 ---
 
+## MERRA-2 clean and dry atmosphere (`merra2_cda`)
+
+**Module**: `spartasolar.atmosphere.merra2_cda`  
+**Class**: `MERRA2CDAAtmosphere`  
+**Basis**: `merra2_lta` climatology with `pwater` fixed to 0.1 cm and `beta` fixed to 0.01 | **Access**: Bundled (no download)
+
+```python
+from spartasolar.atmosphere import merra2_cda
+
+atm = merra2_cda.at_sites(times=times, latitude=36.72, longitude=-4.42)
+result = atm.compute()  # upper envelope of clear-sky irradiance
+```
+
+---
+
 ## Custom atmosphere (`custom`)
 
 **Module**: `spartasolar.atmosphere.custom`  
@@ -184,7 +199,8 @@ result = atm.compute()
 ### Required constituent keys
 
 `pressure` (Pa), `pwater` (cm), `ozone` (atm-cm), `beta`, `alpha`, `albedo`.
-Optional: `ssa`, `asy`.
+Optional: `ssa`. Arrays are shaped `(n_times, n_sites)`; for a single site, 1-D arrays of length `n_times` are accepted.
+`pwater` and `ozone` are converted internally to kg m⁻².
 
 ### Usage
 

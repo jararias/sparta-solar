@@ -15,8 +15,6 @@ from dataclasses import dataclass
 from difflib import get_close_matches
 from typing import Annotated, Any, get_args, get_origin
 
-from . import atmoslib
-
 # from loguru import logger
 
 
@@ -437,4 +435,3 @@ Examples
     'BIRD'
 """
 
-type Atmosphere = Annotated[str, ValidaChoices(list(atmoslib.atmos_dict))]

@@ -1,6 +1,6 @@
 # Installation
 
-## Install from GitHub
+## Install from PyPI
 
 === "uv (recommended)"
 
@@ -14,6 +14,14 @@
     pip install sparta-solar
     ```
 
+
+!!! note
+    The distribution is named `sparta-solar`, but the Python package is imported as `spartasolar`:
+
+    ```python
+    import spartasolar
+    print(spartasolar.__version__)
+    ```
 
 ## Next steps
 

@@ -317,6 +317,22 @@ result = atmos.compute()
 
 ---
 
+## MERRA-2 clean and dry atmosphere
+
+The `merra2_cda` source is the `merra2_lta` climatology with precipitable water
+fixed to 0.1 cm and Ångström turbidity fixed to 0.01. It describes a very clean and
+dry atmosphere, so it gives an approximate upper envelope of clear-sky irradiance
+(e.g., for screening or clear-sky detection). The API is identical to `merra2_lta`:
+
+```python
+from spartasolar.atmosphere import merra2_cda
+
+atmos = merra2_cda.at_sites(times=times, latitude=36.72, longitude=-4.42)
+result = atmos.compute()
+```
+
+---
+
 ## Custom atmosphere
 
 The `custom` source lets you supply your own atmospheric constituents.
@@ -325,9 +341,17 @@ already have the atmospheric inputs from another source.
 
 ### Required variables
 
-At minimum you must provide `pressure`, `pwater`, `ozone`, `beta`, `alpha`, and
-`albedo`. Optionally you can also provide `ssa` (single-scattering albedo) and
-`asy` (asymmetry parameter).
+At minimum you must provide `pressure` (Pa), `pwater` (cm), `ozone` (atm-cm), `beta`, `alpha`, and
+`albedo`. Optionally you can also provide `ssa` (single-scattering albedo). Variables
+not provided fall back to the model defaults.
+
+Each constituent is an array shaped `(n_times, n_sites)` for `at_sites`, or
+`(n_times, n_lats, n_lons)` for `on_regular_grid`. For a single site, 1-D arrays of
+length `n_times` are also accepted, as in the example below.
+
+!!! note
+    `pwater` and `ozone` are given in cm and atm-cm, respectively, but they are
+    stored in `atmos.dataset` in kg m⁻², like in any other atmosphere.
 
 ### Usage
 
@@ -411,6 +435,9 @@ result.ghi.isel(time=0)
 # Aggregate
 result.ghi.mean(dim="time")
 result.ghi.resample(time="D").max()
+
+# Include the atmospheric constituents in the output
+result_full = atmos.compute(include_atmosphere=True)
 
 # Export
 result.to_netcdf("output.nc")

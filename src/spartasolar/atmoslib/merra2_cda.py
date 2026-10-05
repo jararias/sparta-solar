@@ -1,4 +1,4 @@
-"""MERRA-2 Climate Data Archive (CDA) Atmospheric Data.
+"""MERRA-2 Clean and Dry Atmosphere (CDA).
 
 This module provides a simplified interface to MERRA-2 long-term average data
 with conservative default values for water vapor and aerosol optical depth.
@@ -29,7 +29,7 @@ Use conservative atmospheric values for solar assessment:
 ...     longitude=[-4.42, -3.70],
 ...     site_names=["Málaga", "Madrid"]
 ... )
->>> print(atm.dataset.pwater.values)  # All 0.1 cm
+>>> print(atm.dataset.pwater.values)  # All 1 kg m-2 (i.e., 0.1 cm)
 >>> print(atm.dataset.beta.values)    # All 0.01
 
 Notes
@@ -49,6 +49,7 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 
+from .helpers import pwater_in_cm_to_kg_m2
 from .merra2_lta import MERRA2LTAAtmosphere, get_database_path as lta_database_path
 
 logger.disable(__name__)
@@ -65,10 +66,26 @@ def get_database_path():
     return lta_database_path()
 
 
+PWATER_CM = 0.1  # fixed precipitable water, cm
+BETA = 0.01  # fixed Angstrom turbidity
+
+
+def _make_clean_and_dry(atmos):
+    """Override pwater and beta, keeping the variables' attributes (pwater is stored in kg m-2)."""
+    dataset = atmos.dataset
+    if "pwater" in dataset:
+        dataset["pwater"] = dataset["pwater"].copy(
+            data=np.full(dataset["pwater"].shape, pwater_in_cm_to_kg_m2(PWATER_CM)))
+    if "beta" in dataset:
+        dataset["beta"] = dataset["beta"].copy(data=np.full(dataset["beta"].shape, BETA))
+    dataset.attrs["title"] = "Clean and Dry, LTA Atmospheric Dataset for SPARTA"
+    return atmos
+
+
 class MERRA2CDAAtmosphere(
     MERRA2LTAAtmosphere,
-    database_path=get_database_path()):
-    """MERRA-2 Climate Data Archive with conservative default values.
+    database_path=get_database_path):
+    """MERRA-2 clean and dry atmosphere (LTA climatology with fixed pwater and beta).
     
     Extends MERRA2LTAAtmosphere with fixed conservative values for
     water vapor (0.1 cm) and aerosol turbidity (beta=0.01).
@@ -121,14 +138,7 @@ class MERRA2CDAAtmosphere(
             longitude=longitude,
             site_names=site_names)
 
-        if "pwater" in lta_atmos.dataset:
-            lta_atmos.dataset["pwater"] = 0.1
-
-        if "beta" in lta_atmos.dataset:
-            lta_atmos.dataset["beta"] = 0.01
-
-        lta_atmos.dataset.attrs["title"] = "Clean and Dry, LTA Atmospheric Dataset for SPARTA"
-        return lta_atmos
+        return _make_clean_and_dry(lta_atmos)
 
     @classmethod
     def on_regular_grid(
@@ -173,11 +183,4 @@ class MERRA2CDAAtmosphere(
             latitude=latitude,
             longitude=longitude)
 
-        if "pwater" in lta_atmos.dataset:
-            lta_atmos.dataset["pwater"] = 0.1
-
-        if "beta" in lta_atmos.dataset:
-            lta_atmos.dataset["beta"] = 0.01
-
-        lta_atmos.dataset.attrs["title"] = "Clean and Dry, LTA Atmospheric Dataset for SPARTA"
-        return lta_atmos
+        return _make_clean_and_dry(lta_atmos)

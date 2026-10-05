@@ -15,6 +15,16 @@
 
 **sparta-solar** is a Python library for computing **clear-sky solar irradiance** at the surface using the *Solar Parameterization of the Radiative Transfer of the Atmosphere* ([SPARTA](http://hdl.handle.net/10630/28011)) model. It integrates seamlessly with multiple atmospheric databases to supply the aerosol, water vapour, ozone, and pressure inputs that the radiative transfer model requires.
 
+> **Licence:** sparta-solar is distributed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). It is free to use, share and adapt for research and other **non-commercial** purposes, with attribution and under the same licence. **Commercial use is not permitted** without a separate agreement with the author.
+
+```bash
+pip install sparta-solar   # install the distribution "sparta-solar"...
+```
+
+```python
+import spartasolar         # ...but import the package "spartasolar"
+```
+
 ## Key features
 
 #### Physics-based clear-sky irradiance
@@ -33,7 +43,8 @@ A legacy clear-sky model (Bird & Hulstrom, 1981) is also included for comparison
 | NASA MERRA-2 reanalysis<br>long-term averages<br>shipped with the package | `merra2_lta` | 1999–2018 climatology<br>12 monthly values<br>global coverage<br>point and gridded | 0.5° × 0.625° |
 | NASA MERRA-2 reanalysis<br>from a dedicated<br>[Hugging Face dataset](https://huggingface.co/datasets/josearuizarias/merra2-daily-clearsky) | `merra2_daily` | 1999–2018<br>daily time steps<br>global coverage<br>point and gridded | 0.5° × 0.625° |
 | NASA MERRA-2 reanalysis<br>via [Google Earth Engine](https://developers.google.com/earth-engine/datasets/catalog?hl=es-419)<br>(requires GEE account) | `merra2_gee` | 1980–present<br>hourly time steps<br>global coverage<br>point | 0.5° × 0.625° |
-| CAMS radiation service<br>via [SODA](https://www.soda-pro.com/web-services/radiation/cams-mcclear) API<br>(requries SODA account) | `crs_soda` | 2004–present<br>hourly (averaged) time steps<br>global coverage<br>point | 0.75° × 0.75° |
+| CAMS radiation service<br>via [SODA](https://www.soda-pro.com/web-services/radiation/cams-mcclear) API<br>(requires SODA account) | `crs_soda` | 2004–present<br>hourly (averaged) time steps<br>global coverage<br>point | 0.75° × 0.75° |
+| NASA MERRA-2 long-term averages<br>with fixed low water vapour<br>and turbidity (clean and dry) | `merra2_cda` | as `merra2_lta`<br>pwater = 0.1 cm, beta = 0.01 | 0.5° × 0.625° |
 | User-defined | `custom` | Any | Any |
 
 #### CF-compliant xarray outputs
@@ -67,7 +78,7 @@ atmos = crs_soda.at_site(
     times=times,
     latitude=lat,
     longitude=lon,
-    site_names=location)
+    site_name=location)
 
 result = atmos.compute(model="SPARTA")
 
@@ -135,7 +146,7 @@ Ready to use sparta-solar? Start with the [Installation](installation.md) guide,
 
 ## License
 
-sparta-solar is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) — free for non-commercial use with attribution.
+sparta-solar is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/): free for research and other non-commercial use, with attribution and under the same licence. Commercial use is not permitted without a separate agreement with the author.
 
 ## Contact
 

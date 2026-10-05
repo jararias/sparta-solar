@@ -73,6 +73,11 @@ default_var_attrs = {
         "long_name": "total column ozone",
         "units": "kg m-2"
     },
+    "aod550": {
+        "standard_name": "atmosphere_optical_thickness_due_to_ambient_aerosol_particles",
+        "long_name": "aerosol optical depth at 550 nm",
+        "units": "1"
+    },
     "beta": {
         "long_name": "Angstrom turbidity parameter",
         "units": "1"
@@ -285,8 +290,11 @@ def validate_site_names(
         ``n_sites``.
     """
     if site_names is not None:
-        if site_names == list(range(n_sites)):
-            return site_names
+        # default integer site labels (e.g., read back from a dataset's `site` coordinate)
+        as_array = np.asarray(site_names)
+        if (as_array.ndim == 1 and np.issubdtype(as_array.dtype, np.integer)
+                and np.array_equal(as_array, np.arange(n_sites))):
+            return list(range(n_sites))
         site_names = np.array(site_names, ndmin=1, dtype=str)
         if site_names.ndim != 1:
             raise ValueError(
@@ -471,6 +479,19 @@ def build_atmosphere_on_regular_grid(
     return data
 
 
+class _DatabasePath:
+    """Class-level descriptor that resolves the database path on every access.
+
+    This lets subclasses pass a callable (e.g. ``get_database_path``) so that
+    configuration changes made after import (``config.set_option``) are honoured.
+    """
+
+    def __get__(self, obj, owner):
+        spec = owner._database_path_spec
+        path = spec() if callable(spec) else spec
+        return None if path is None else Path(path)
+
+
 class BaseAtmosphere(metaclass=abc.ABCMeta):
     """Abstract base class for atmospheric database interfaces.
 
@@ -530,18 +551,22 @@ class BaseAtmosphere(metaclass=abc.ABCMeta):
 
         self._atmosphere: xr.DataArray = None
 
-    def __init_subclass__(cls, database_path: str, **kwargs):
+    database_path = _DatabasePath()
+    _database_path_spec = None
+
+    def __init_subclass__(cls, database_path, **kwargs):
         """Automatically sets the database path for subclasses.
 
         Parameters
         ----------
-        database_path : str or None
-            The directory path where the specific atmosphere data is stored.
+        database_path : str, Path, callable or None
+            The directory path where the specific atmosphere data is stored, or
+            a callable returning it (resolved lazily on each access).
             Pass ``None`` for sources that do not use a file database
             (e.g. ``CustomAtmosphere`` or API-based retrievers).
         """
         super().__init_subclass__(**kwargs)
-        cls.database_path = None if database_path is None else Path(database_path)
+        cls._database_path_spec = database_path
 
     @property
     def dataset(self):
@@ -550,7 +575,7 @@ class BaseAtmosphere(metaclass=abc.ABCMeta):
     def compute(
         self,
         model: Model = "SPARTA",
-        include_atmosphere: bool = False,  # TODO: currently ignored
+        include_atmosphere: bool = False,
         model_kwargs: dict | None = None,
     ) -> xr.Dataset:
         """Compute clear-sky solar radiation using a radiative transfer model.
@@ -562,10 +587,11 @@ class BaseAtmosphere(metaclass=abc.ABCMeta):
         Parameters
         ----------
         model : Model, default "SPARTA"
-            Name of the clear-sky model to use. Options: "SPARTA", "Bird"
+            Name of the clear-sky model to use (case-insensitive). Options: "SPARTA", "BIRD"
         include_atmosphere : bool, default False
-            If True, include atmospheric constituents in the output dataset.
-            If False, only radiation components are returned.
+            If True, the atmospheric constituents of this atmosphere (in their
+            original units) are merged into the output dataset. If False, only
+            the model outputs are returned.
         model_kwargs : dict, optional
             Additional keyword arguments to pass to the model function
             
@@ -575,7 +601,8 @@ class BaseAtmosphere(metaclass=abc.ABCMeta):
             CF-compliant dataset containing computed irradiance components:
             - ghi: Global Horizontal Irradiance (W/m²)
             - dni: Direct Normal Irradiance (W/m²)
-            - dhi or dif: Diffuse Horizontal Irradiance (W/m²)
+            - dhi: Direct Horizontal Irradiance (W/m²)
+            - dif: Diffuse Horizontal Irradiance (W/m²)
             - csi: Circumsolar Irradiance (W/m², SPARTA only)
             
         Examples
@@ -592,12 +619,10 @@ class BaseAtmosphere(metaclass=abc.ABCMeta):
         >>> result = atm.compute(model="SPARTA")
         >>> print(result.ghi.values)
         
-        Use different model with custom parameters:
+        Use a different model, or pass custom parameters to the model:
         
-        >>> result = atm.compute(
-        ...     model="Bird",
-        ...     model_kwargs={"scheme": "transmittance_parameterization"}
-        ... )
+        >>> result = atm.compute(model="BIRD")
+        >>> result = atm.compute(model="SPARTA", model_kwargs={"csi_param": "none"})
         
         Notes
         -----
@@ -662,7 +687,7 @@ class BaseAtmosphere(metaclass=abc.ABCMeta):
 
         # encapsulate the result in a CF-compliant xarray Dataset
         if is_regular_grid:
-            return build_atmosphere_on_regular_grid(
+            output = build_atmosphere_on_regular_grid(
                 times=self.dataset.indexes["time"],
                 latitude=self.dataset.lat.values,
                 longitude=self.dataset.lon.values,
@@ -672,8 +697,8 @@ class BaseAtmosphere(metaclass=abc.ABCMeta):
         else:
             site_values = self.dataset.coords.get("site").values
             n_sites = self.dataset.sizes["site"]
-            site_names = validate_site_names(site_values, n_sites)
-            return build_atmosphere_of_sites(
+            site_names = validate_site_names(list(site_values), n_sites)
+            output = build_atmosphere_of_sites(
                 times=self.dataset.indexes["time"],
                 latitude=self.dataset.lat.values,
                 longitude=self.dataset.lon.values,
@@ -681,3 +706,10 @@ class BaseAtmosphere(metaclass=abc.ABCMeta):
                 site_names=site_names,
                 global_attrs=get_global_attrs(feature_type="timeSeries")
             )
+
+        if include_atmosphere:
+            atmos_vars = [var for var in self.dataset.data_vars if var not in output.data_vars]
+            for var in atmos_vars:
+                output[var] = (self.dataset[var].dims, self.dataset[var].values, self.dataset[var].attrs)
+
+        return output

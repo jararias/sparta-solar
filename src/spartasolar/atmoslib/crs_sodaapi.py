@@ -238,7 +238,7 @@ def clear_crs_soda_cache(
 
 class CRSSODAAtmosphere(
     BaseAtmosphere,
-    database_path=get_database_path()
+    database_path=get_database_path
 ):
     """CRS SODA (Copernicus Radiation Service) atmospheric database.
     
@@ -252,6 +252,7 @@ class CRSSODAAtmosphere(
     """
 
     CRS_VERSION: str = "1.0.0"
+    FIRST_YEAR: int = 2004  # first year available in the CAMS McClear service
 
     @classmethod
     def _get_filename(cls, year: int, latitude: float, longitude: float, version: str | None = None) -> Path:
@@ -383,7 +384,7 @@ class CRSSODAAtmosphere(
             logger.success(f"data downloaded and archived: <blue>{path.name}</blue>")
 
         # load data from one year before and one year after the requested times_utc, but
-        # clipping the years on 2004 and the current year
+        # clipping the years on the first available year and the current year
         paths = []
         times_utc = ensure_tz_aware_datetime_index(times, utc=True)
         years = cls._infer_years_from_times(times_utc)
@@ -404,7 +405,7 @@ class CRSSODAAtmosphere(
         data_interp = pd.DataFrame({"times": times_utc} | y_dict)
 
         global_attrs = {
-            "title:": "Hourly CRS SODA McClear dataset for SPARTA",
+            "title": "Hourly CRS SODA McClear dataset for SPARTA",
             "source": "WPS SODA API, https://www.soda-pro.com/web-services/radiation/cams-mcclear",
             "version": cls.CRS_VERSION,
             "references": "https://confluence.ecmwf.int/display/CKB/CAMS+solar+radiation+time-series%3A+data+documentation",
@@ -420,13 +421,17 @@ class CRSSODAAtmosphere(
             global_attrs=global_attrs)
         return obj
 
-    @staticmethod
-    def _infer_years_from_times(times_utc: pd.DatetimeIndex) -> list[int]:
+    @classmethod
+    def _infer_years_from_times(cls, times_utc: pd.DatetimeIndex) -> list[int]:
+        # padding years near the year boundaries, limited to the available period
+        first_year, last_year = cls.FIRST_YEAR, pd.Timestamp.now(tz="UTC").year
         years = set(times_utc.year)
         if (times_utc[0] - pd.to_datetime(f"{min(years)}-01-01 00:00:00", utc=True)) < pd.Timedelta(3, "h"):
-            years.add(min(years)-1)
+            if min(years) > first_year:
+                years.add(min(years)-1)
         if (pd.to_datetime(f"{max(years)+1}-01-01 00:00:00", utc=True) - times_utc[-1]) < pd.Timedelta(3, "h"):
-            years.add(max(years)+1)
+            if max(years) < last_year:
+                years.add(max(years)+1)
         return sorted(years)
 
     @staticmethod
@@ -516,15 +521,21 @@ class CRSSODAAtmosphere(
         if len(existing_aods):
             weighted_alpha /= data.get(existing_aods).sum(axis=1)
 
-        data["alpha"] = data["alpha"].where(data["alpha"].notna(), weighted_alpha)
+        if "alpha" in data:  # not provided by the service so far, but use it if it ever is
+            data["alpha"] = data["alpha"].where(data["alpha"].notna(), weighted_alpha)
+        else:
+            data["alpha"] = weighted_alpha
         data["beta"] = data["aod550"]*(0.55**data["alpha"])
 
         # estimate surface pressure from altitude (surface pressure is missing in crs)
         regex = re.compile(r"^#\s*Altitude \(m\):\s*([-+]?\d*\.?\d+)")
+        altitude = None
         for line in metadata:
             if (m := regex.search(line)):
                 altitude = float(m.groups()[0])
                 break
+        if altitude is None:
+            raise ValueError("site altitude not found in the metadata of the CRS SODA response")
 
         data["pressure"] = barometric_formula_laplace(altitude)  # surface pressure, Pa
         data["ozone"] = ozone_in_du_to_kg_m2(data["tco3"])  # DU to kg m-2

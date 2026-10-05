@@ -228,12 +228,10 @@ class TestSODAvsGEEConsistency:
     @pytest.fixture(autouse=True)
     def _load(self, soda_atmosphere):
         from spartasolar import config
-        from spartasolar.atmoslib.merra2_geeapi import MERRA2GEEAtmosphere, get_database_path
+        from spartasolar.atmoslib.merra2_geeapi import MERRA2GEEAtmosphere
 
         gee_data_dir = Path(__file__).parent.parent / "data" / "merra2_gee"
         config.set_option("merra2_gee.data_dir", gee_data_dir)
-        # Explicitly refresh the class attribute since the module may already be cached
-        MERRA2GEEAtmosphere.database_path = get_database_path()
         gee_atm = MERRA2GEEAtmosphere.at_site(
             times=TEST_TIMES, latitude=TEST_LAT, longitude=TEST_LON,
             site_name=TEST_SITE)

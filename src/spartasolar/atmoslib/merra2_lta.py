@@ -89,7 +89,7 @@ def get_database_path():
 
 class MERRA2LTAAtmosphere(
     BaseAtmosphere,
-    database_path=get_database_path()
+    database_path=get_database_path
 ):
     """MERRA-2 long-term monthly average atmospheric database.
     
